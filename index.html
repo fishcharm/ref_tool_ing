@@ -808,10 +808,10 @@ function renderBM(){
 
 // ─── FEEDS (safe — titles only, no clickable links from feed content) ──
 const FEEDS=[
-  {id:'cisa',lbl:'CISA KEV',url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cisa.gov%2Fsites%2Fdefault%2Ffiles%2Ffeeds%2Fknown_exploited_vulnerabilities.xml&count=25',src:'CISA'},
-  {id:'bleeping',lbl:'Bleeping Computer',url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.bleepingcomputer.com%2Ffeed%2F&count=25',src:'BleepingComputer'},
-  {id:'krebs',lbl:'Krebs on Security',url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fkrebsonsecurity.com%2Ffeed%2F&count=25',src:'Krebs'},
-  {id:'cisa-adv',lbl:'CISA Advisories',url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cisa.gov%2Fsites%2Fdefault%2Ffiles%2Ffeeds%2Fnews.xml&count=25',src:'CISA'},
+  {id:'cisa',lbl:'CISA KEV',url:'https://api.allorigins.win/get?url='+encodeURIComponent('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.xml'),src:'CISA',isXml:true},
+  {id:'bleeping',lbl:'Bleeping Computer',url:'https://api.allorigins.win/get?url='+encodeURIComponent('https://www.bleepingcomputer.com/feed/'),src:'BleepingComputer',isXml:true},
+  {id:'krebs',lbl:'Krebs on Security',url:'https://api.allorigins.win/get?url='+encodeURIComponent('https://krebsonsecurity.com/feed/'),src:'Krebs',isXml:true},
+  {id:'cisa-adv',lbl:'CISA Advisories',url:'https://api.allorigins.win/get?url='+encodeURIComponent('https://www.cisa.gov/sites/default/files/feeds/news.xml'),src:'CISA',isXml:true},
 ];
 let activeFeed=null,feedCache={};
 
@@ -845,14 +845,19 @@ async function loadFeed(fid){
   if(feedCache[fid]){renderFeedItems(feedCache[fid],feed.src);return;}
   el.innerHTML='<div class="floading">Fetching feed...</div>';
   try{
-    const r=await fetch(feed.url,{mode:'cors'});
+    const r=await fetch(feed.url);
     if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
-    if(!data.items||!data.items.length)throw new Error('Empty feed');
-    feedCache[fid]=data.items;
-    renderFeedItems(data.items,feed.src);
+    const xml=new DOMParser().parseFromString(data.contents,'text/xml');
+    const items=[...xml.querySelectorAll('item')].map(i=>({
+      title:i.querySelector('title')?.textContent||'',
+      pubDate:i.querySelector('pubDate')?.textContent||''
+    }));
+    if(!items.length)throw new Error('Empty');
+    feedCache[fid]=items;
+    renderFeedItems(items,feed.src);
   }catch(e){
-    el.innerHTML=`<div class="ferr">⚠ Could not load feed.<br><br>Feeds require an HTTP server context — open via:<br><code style="color:#f0a500;">python3 -m http.server</code><br>then visit localhost.<br><br>Use bookmarks on the left for direct source access.</div>`;
+    el.innerHTML=`<div class="ferr">⚠ Could not load feed — try refreshing, or use bookmarks for direct source access.</div>`;
   }
 }
 
